@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kimia Track - Surveillance Live</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <style>
+    body { font-family: sans-serif; margin: 0; background: #0f172a; color: white; }
+    
+    /* Bouton de retour superposé sur la carte */
+    .btn-quitter {
+      position: absolute; top: 10px; right: 10px; z-index: 1000;
+      background: rgba(239, 68, 68, 0.9); color: white; border: none;
+      padding: 10px 15px; border-radius: 8px; font-weight: bold; cursor: pointer;
+    }
+
+    #maCarte { height: 80vh; width: 100%; border-bottom: 2px solid #38bdf8; }
+    .footer-live { padding: 15px; text-align: center; }
+    #vitesse { color: #38bdf8; font-weight: bold; }
+  </style>
+</head>
+<body>
+
+  <button class="btn-quitter" onclick="window.location.href='index.html'">Quitter</button>
+
+  <div id="maCarte"></div>
+  <div class="footer-live">
+    <p>📡 État : <span id="statut">Recherche du signal...</span></p>
+    <p>Vitesse actuelle : <span id="vitesse">0 km/h</span></p>
+  </div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script>
+    // Initialisation
+    let carte = L.map('maCarte').setView([-4.4419, 15.2663], 13);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/hot/{z}/{x}/{y}.png').addTo(carte);
+    let marqueur = L.marker([-4.4419, 15.2663]).addTo(carte);
+
+    // Fonction de localisation
+    if ("geolocation" in navigator) {
+      navigator.geolocation.watchPosition(function(pos) {
+        let lat = pos.coords.latitude;
+        let lon = pos.coords.longitude;
+        let vit = pos.coords.speed ? (pos.coords.speed * 3.6).toFixed(1) : 0; // Conversion m/s en km/h
+
+        marqueur.setLatLng([lat, lon]);
+        carte.setView([lat, lon], 16);
+        
+        document.getElementById('statut').innerText = "✅ Surveillance active";
+        document.getElementById('vitesse').innerText = vit + " km/h";
+      }, null, { enableHighAccuracy: true });
+    }
+  </script>
+</body>
+</html>

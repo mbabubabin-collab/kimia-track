@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Approvisionnement - Kimia Track</title>
+    <style>
+        :root { --primary: #38bdf8; --bg: #0f172a; --card: #1e293b; --text: #f1f5f9; --accent: #eab308; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 15px; }
+        
+        .step { display: none; }
+        .step.active { display: block; }
+
+        .header { text-align: center; margin-bottom: 25px; }
+        .card { background: var(--card); padding: 20px; border-radius: 15px; border: 1px solid #334155; }
+        
+        input, select { 
+            width: 100%; padding: 12px; margin: 10px 0; border-radius: 8px; 
+            border: 1px solid #475569; background: #0f172a; color: white; box-sizing: border-box;
+        }
+
+        .network-badge { 
+            display: inline-block; padding: 5px 12px; border-radius: 20px; 
+            font-size: 10px; font-weight: bold; margin-bottom: 10px; 
+        }
+        .airtel { background: #ff0000; color: white; }
+        .orange { background: #ff6600; color: white; }
+        .vodacom { background: #e60000; color: white; }
+
+        .info-paiement { background: rgba(234, 179, 8, 0.1); border: 1px dashed var(--accent); padding: 15px; border-radius: 10px; margin: 15px 0; }
+        
+        .btn-next { background: var(--primary); color: #0f172a; border: none; width: 100%; padding: 15px; border-radius: 10px; font-weight: bold; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h2 style="font-size: 18px; margin: 0;">💳 Recharger un Appareil</h2>
+        <p style="font-size: 12px; color: #94a3b8;">Data / SMS de Tracing</p>
+    </div>
+
+    <!-- ÉTAPE 1 : Choix de la cible -->
+    <div class="step active" id="step1">
+        <div class="card">
+            <label>Sélectionnez le téléphone cible :</label>
+            <select id="select-cible">
+                <option value="0894161652">Cible 1 (0894161652)</option>
+                <option value="0820001122">Cible 2 (0820001122)</option>
+            </select>
+            <button class="btn-next" onclick="goToStep(2)">Continuer</button>
+        </div>
+    </div>
+
+    <!-- ÉTAPE 2 : Infos de paiement & Détection Réseau -->
+    <div class="step" id="step2">
+        <div class="card">
+            <label>Votre numéro d'envoi d'argent :</label>
+            <input type="tel" id="sender-num" placeholder="Ex: 097000..." oninput="detecterReseau(this.value)">
+            
+            <div id="network-status"></div>
+
+            <div class="info-paiement">
+                <small>Envoyez le montant au numéro suivant :</small><br>
+                <strong id="admin-num" style="font-size: 18px; color: var(--accent);">Veuillez saisir votre numéro</strong>
+            </div>
+
+            <label>Code de transaction (SMS reçu) :</label>
+            <input type="text" id="transaction-code" placeholder="Entrez le code ID de la transaction">
+            
+            <button class="btn-next" onclick="finaliser()">LANCER LE PROCESSUS</button>
+        </div>
+    </div>
+
+    <!-- ÉTAPE 3 : Attente -->
+    <div class="step" id="step3">
+        <div class="card" style="text-align: center;">
+            <div style="font-size: 40px; margin-bottom: 20px;">⏳</div>
+            <h3>Demande envoyée !</h3>
+            <p style="font-size: 13px; color: #94a3b8;">L'administrateur confirme votre transfert sous 5 minutes. Votre solde sera pompé automatiquement.</p>
+            <button class="btn-next" style="background:#334155; color:white;" onclick="window.location.href='menu.html'">Retour au Menu</button>
+        </div>
+    </div>
+
+    <script>
+        function goToStep(s) {
+            document.querySelectorAll('.step').forEach(step => step.classList.remove('active'));
+            document.getElementById('step' + s).classList.add('active');
+        }
+
+        function detecterReseau(num) {
+            const status = document.getElementById('network-status');
+            const adminNumDisplay = document.getElementById('admin-num');
+            
+            if(num.startsWith('097') || num.startsWith('099')) {
+                status.innerHTML = '<span class="network-badge airtel">Réseau Détecté: AIRTEL</span>';
+                adminNumDisplay.innerText = "0971234567"; // Votre numéro Airtel Admin
+            } else if(num.startsWith('081') || num.startsWith('082')) {
+                status.innerHTML = '<span class="network-badge vodacom">Réseau Détecté: VODACOM</span>';
+                adminNumDisplay.innerText = "0819876543"; // Votre numéro Vodacom Admin
+            } else if(num.startsWith('089') || num.startsWith('084')) {
+                status.innerHTML = '<span class="network-badge orange">Réseau Détecté: ORANGE</span>';
+                adminNumDisplay.innerText = "0890000000"; // Votre numéro Orange Admin
+            } else {
+                status.innerHTML = '';
+                adminNumDisplay.innerText = "Numéro non reconnu";
+            }
+        }
+
+        function finaliser() {
+            const code = document.getElementById('transaction-code').value;
+            if(!code) { alert("Veuillez entrer le code de transaction."); return; }
+            
+            // Ici, vous envoyez une notification à admin.html via Firebase
+            alert("Alerte envoyée à l'administrateur.");
+            goToStep(3);
+        }
+    </script>
+</body>
+</html>

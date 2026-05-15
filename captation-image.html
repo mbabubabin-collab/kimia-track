@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Captation Image & Rapport - Kimia Track</title>
+    <style>
+        :root { --primary: #38bdf8; --bg: #0f172a; --card: #1e293b; --text: #f1f5f9; --accent: #fbbf24; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 15px; }
+        
+        .header-report { text-align: center; border-bottom: 1px solid #334155; padding-bottom: 15px; margin-bottom: 20px; }
+        .target-id { color: var(--primary); font-weight: bold; font-size: 1.2em; }
+
+        /* Module Satellite */
+        .satellite-view { 
+            width: 100%; height: 200px; background: url('https://images.unsplash.com/photo-1526778548025-fa2f459cd5ce?q=80&w=500') center/cover;
+            border-radius: 12px; border: 2px solid var(--primary); position: relative; margin-bottom: 20px;
+        }
+        .sat-overlay { position: absolute; bottom: 10px; left: 10px; background: rgba(0,0,0,0.7); padding: 5px 10px; font-size: 10px; border-radius: 4px; }
+
+        /* Rapport d'Habitudes */
+        .report-section { background: var(--card); border-radius: 12px; padding: 15px; margin-bottom: 15px; }
+        .section-title { font-size: 12px; color: var(--accent); font-weight: bold; margin-bottom: 15px; text-transform: uppercase; letter-spacing: 1px; }
+
+        .timeline-item { display: flex; gap: 15px; margin-bottom: 15px; border-left: 1px solid #475569; padding-left: 15px; position: relative; }
+        .timeline-item::after { content: ''; position: absolute; left: -5px; top: 0; width: 9px; height: 9px; background: var(--primary); border-radius: 50%; }
+        
+        .time { font-size: 11px; color: #94a3b8; min-width: 40px; }
+        .activity { font-size: 13px; }
+        .transport-tag { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 10px; margin-top: 5px; background: #334155; color: var(--primary); }
+
+        .btn-refresh { background: var(--primary); color: #0f172a; border: none; width: 100%; padding: 15px; border-radius: 8px; font-weight: bold; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+    <div class="header-report">
+        <div style="font-size: 10px; color: #94a3b8;">RAPPORT D'INTELLIGENCE VISUELLE</div>
+        <div class="target-id" id="display-num">0894161652</div>
+    </div>
+
+    <div class="section-title">Visualisation Satellite Actuelle</div>
+    <div class="satellite-view">
+        <div class="sat-overlay">📡 LIVE SATELLITE - ZOOM 18x</div>
+    </div>
+
+    <div class="report-section">
+        <div class="section-title">Analyse des Déplacements (24h)</div>
+        
+        <div class="timeline-item">
+            <div class="time">07:15</div>
+            <div class="activity">
+                <strong>Départ : Domicile</strong><br>
+                <span class="transport-tag">🚶 Marche</span>
+            </div>
+        </div>
+
+        <div class="timeline-item">
+            <div class="time">08:30</div>
+            <div class="activity">
+                <strong>Trajet : Boulevard Triomphal</strong><br>
+                <span class="transport-tag">🚌 Transport Commun (Bus)</span>
+            </div>
+        </div>
+
+        <div class="timeline-item">
+            <div class="time">12:45</div>
+            <div class="activity">
+                <strong>Espace côtoyé : Centre Commercial</strong><br>
+                <span class="transport-tag">📍 Stationnaire</span>
+            </div>
+        </div>
+
+        <div class="timeline-item">
+            <div class="time">17:20</div>
+            <div class="activity">
+                <strong>Retour en cours : Avenue Libération</strong><br>
+                <span class="transport-tag">🏍️ Moto-Taxi (Vitesse: 35km/h)</span>
+            </div>
+        </div>
+    </div>
+
+    <button class="btn-refresh" onclick="location.reload()">ACTUALISER LES DONNÉES IMAGE</button>
+    <a href="menu.html" style="display:block; text-align:center; color:#94a3b8; font-size:12px; margin-top:15px; text-decoration:none;">Fermer le rapport</a>
+
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const tel = urlParams.get('tel');
+        if(tel) document.getElementById('display-num').innerText = tel;
+    </script>
+</body>
+</html>

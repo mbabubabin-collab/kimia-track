@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tracé Itinéraire - Kimia Track</title>
+    <style>
+        :root { --primary: #38bdf8; --bg: #0f172a; --card: #1e293b; --text: #f1f5f9; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); margin: 0; }
+        
+        /* En-tête Statistique */
+        .stats-bar { display: flex; justify-content: space-around; background: var(--card); padding: 15px; border-bottom: 1px solid var(--primary); }
+        .stat-item { text-align: center; }
+        .stat-value { display: block; font-weight: bold; color: var(--primary); font-size: 18px; }
+        .stat-label { font-size: 10px; color: #94a3b8; text-transform: uppercase; }
+
+        /* Zone de la Carte (Simulée ici) */
+        #map-container { width: 100%; height: 350px; background: #1e293b; position: relative; overflow: hidden; }
+        .map-placeholder { display: flex; align-items: center; justify-content: center; height: 100%; color: #475569; font-style: italic; }
+
+        /* Liste des points d'itinéraire */
+        .timeline { padding: 20px; }
+        .log-entry { border-left: 2px solid var(--primary); padding-left: 15px; margin-bottom: 20px; position: relative; }
+        .log-entry::before { content: ''; position: absolute; left: -7px; top: 0; width: 12px; height: 12px; background: var(--primary); border-radius: 50%; }
+        .log-time { font-size: 12px; font-weight: bold; color: var(--primary); }
+        .log-address { font-size: 14px; display: block; margin-top: 4px; }
+    </style>
+</head>
+<body>
+
+    <div class="stats-bar">
+        <div class="stat-item">
+            <span class="stat-label">Cible</span>
+            <span class="stat-value" id="target-id">---</span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-label">Distance</span>
+            <span class="stat-value">4.2 km</span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-label">Points</span>
+            <span class="stat-value">12</span>
+        </div>
+    </div>
+
+    <div id="map-container">
+        <!-- Ici s'intégrera Google Maps ou Leaflet -->
+        <div class="map-placeholder">Chargement du tracé satellite...</div>
+    </div>
+
+    <div class="timeline">
+        <h3 style="font-size: 14px; color: #94a3b8; margin-bottom: 20px;">HISTORIQUE DU PARCOURS (DERNIÈRES 24H)</h3>
+        
+        <div id="logs-container">
+            <!-- Points injectés dynamiquement -->
+            <div class="log-entry">
+                <span class="log-time">10:45:22</span>
+                <span class="log-address">Arrêt : Marché Central, Kinshasa</span>
+            </div>
+            <div class="log-entry">
+                <span class="log-time">10:30:10</span>
+                <span class="log-address">En mouvement : Boulevard du 30 Juin</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const tel = urlParams.get('tel');
+        if(tel) document.getElementById('target-id').innerText = tel;
+
+        // Ici, vous ajouterez l'appel API vers votre backend (Firebase) 
+        // pour récupérer les latitudes/longitudes stockées.
+    </script>
+</body>
+</html>

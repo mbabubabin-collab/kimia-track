@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Kimia Track</title>
+    <style>
+        :root { 
+            --primary: #38bdf8; --bg: #0f172a; --card: #1e293b; --text: #f1f5f9; 
+            --accent: #eab308; --success: #22c55e; --danger: #ef4444; --shadow: rgba(0,0,0,0.3);
+        }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 15px; padding-bottom: 90px; }
+        
+        /* Header & Session */
+        .header-app { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; background: var(--card); padding: 15px; border-radius: 12px; box-shadow: 0 4px 6px var(--shadow); }
+        .session-info { font-size: 11px; color: var(--primary); letter-spacing: 1px; }
+        .user-name { font-weight: bold; font-size: 18px; color: white; }
+
+        /* Grille des Cibles Individualisées */
+        .target-grid { display: flex; flex-direction: column; gap: 20px; }
+        .target-card { background: var(--card); border-radius: 16px; border: 1px solid #334155; overflow: hidden; position: relative; }
+        
+        .target-header { background: rgba(56, 189, 248, 0.1); padding: 12px; border-bottom: 1px solid #334155; display: flex; justify-content: space-between; align-items: center; }
+        .status-badge { font-size: 10px; background: var(--success); color: white; padding: 2px 8px; border-radius: 20px; text-transform: uppercase; font-weight: bold; }
+        
+        .target-body { padding: 15px; }
+        .balance-box { display: flex; justify-content: space-between; align-items: center; background: #0f172a; padding: 10px; border-radius: 10px; margin-bottom: 15px; }
+        .balance-label { font-size: 11px; color: #94a3b8; }
+        .balance-value { font-size: 16px; font-weight: bold; color: var(--accent); }
+
+        /* Grille d'actions tactiques */
+        .action-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+        .btn-tactic { 
+            background: #2d3a4f; border: 1px solid #475569; color: white; 
+            padding: 12px 8px; border-radius: 10px; font-size: 11px; font-weight: bold; 
+            cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 5px; transition: 0.2s;
+        }
+        .btn-tactic:active { transform: scale(0.95); background: var(--primary); }
+        .btn-tactic span { font-size: 16px; }
+
+        /* Bouton Approvisionnement (Spécial) */
+        .btn-refill { grid-column: span 2; background: rgba(34, 197, 94, 0.1); border: 1px dashed var(--success); color: var(--success); }
+
+        /* Navigation Basse */
+        .nav-bar { position: fixed; bottom: 0; left: 0; right: 0; background: var(--card); display: flex; justify-content: space-around; padding: 15px; border-top: 1px solid #334155; z-index: 100; }
+        .nav-btn { color: #94a3b8; text-decoration: none; font-size: 12px; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+        .nav-btn.active { color: var(--primary); }
+        .nav-btn.reclamation { color: var(--accent); }
+        .nav-btn.help { color: #38bdf8; } /* Style pour le bouton Aide */
+    </style>
+</head>
+<body>
+
+    <div class="header-app">
+        <div>
+            <span class="session-info" id="session-id">CHARGEMENT...</span>
+            <div class="user-name" id="user-name">Utilisateur</div>
+        </div>
+        <div style="text-align: right;">
+            <div style="font-size: 10px; color: #94a3b8;">STATUT COMPTE</div>
+            <div style="font-size: 14px; font-weight: bold; color: var(--accent);" id="account-status">ACTIF</div>
+        </div>
+    </div>
+
+    <div class="target-grid" id="target-container">
+        <!-- Les blocs par appareil seront injectés ici -->
+    </div>
+
+    <!-- Navigation Mise à jour avec bouton Aide au flanc gauche -->
+    <nav class="nav-bar">
+        <a href="aide.html" class="nav-btn help"><span>❓</span>Aide</a>
+        <a href="#" class="nav-btn active"><span>📡</span>Radar</a>
+        <a href="#" class="nav-btn" onclick="alert('Portefeuille en cours de synchronisation...')"><span>💰</span>Wallet</a>
+        <a href="https://wa.me/243861769481" class="nav-btn reclamation"><span>⚠️</span>Réclamation</a>
+        <a href="identification.html" class="nav-btn"><span>🔒</span>Quitter</a>
+    </nav>
+
+    <script>
+        window.onload = function() {
+            const nom = localStorage.getItem('kt_user_nom') || "Agent Kimia";
+            const session = localStorage.getItem('kt_session_id') || "KT-OFFLINE";
+            const authStatus = localStorage.getItem('kt_auth_status');
+            const mode = (authStatus === 'registered' || authStatus === 'active') ? "GOLD" : "DEMO";
+            
+            const telPrincipal = localStorage.getItem('kt_user_tel');
+            const ciblesData = localStorage.getItem('kt_cibles_list');
+            
+            document.getElementById('user-name').innerText = nom;
+            document.getElementById('session-id').innerText = session;
+            document.getElementById('account-status').innerText = mode;
+
+            const container = document.getElementById('target-container');
+            
+            if(!telPrincipal && !ciblesData) {
+                container.innerHTML = `<div style="text-align:center; padding:40px; color:#64748b;">Aucun appareil configuré.</div>`;
+                return;
+            }
+
+            // Récupération de la liste complète des cibles ou du numéro principal par défaut
+            let listeNumeros = [];
+            if(ciblesData) {
+                listeNumeros = JSON.parse(ciblesData);
+            } else {
+                listeNumeros = [telPrincipal];
+            }
+
+            listeNumeros.forEach((numero, index) => {
+                container.innerHTML += `
+                    <div class="target-card">
+                        <div class="target-header">
+                            <span style="font-weight:bold; font-size:13px;">📲 APPAREIL : ${numero}</span>
+                            <span class="status-badge">SIGNAL DISPONIBLE</span>
+                        </div>
+                        <div class="target-body">
+                            <div class="balance-box">
+                                <div>
+                                    <span class="balance-label">MODE D'ACCÈS</span>
+                                    <div class="balance-value">${mode}</div>
+                                </div>
+                                <span style="color:#64748b; font-size:10px;">ID: ${session}</span>
+                            </div>
+
+                            <div class="action-grid">
+                                <button class="btn-tactic" onclick="triggerCaptation('${numero}')">
+                                    <span>🎤</span>Captation Silencieuse
+                                </button>
+                                <button class="btn-tactic" onclick="traceItineraire('${numero}')">
+                                    <span>🗺️</span>Tracer Itinéraire
+                                </button>
+                                <button class="btn-tactic" onclick="sendSMSTracing('${numero}')">
+                                    <span>📩</span>SMS Tracing (Data/SMS)
+                                </button>
+                                <button class="btn-tactic" onclick="alert('Module Caméra : Synchronisation requise...')">
+                                    <span>📸</span>Captation Image
+                                </button>
+                                <button class="btn-tactic btn-refill" onclick="provisionner('${numero}')">
+                                    <span>⚡</span>APPROVISIONNER DATA/SMS
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+        };
+
+        function triggerCaptation(num) {
+            alert("Lancement de la captation silencieuse sur " + num + "\nÉcoute environnementale cryptée en cours...");
+        }
+
+        function traceItineraire(num) {
+            alert("Récupération de l'itinéraire de " + num + "\nSynchronisation avec les balises locales...");
+        }
+
+        function sendSMSTracing(num) {
+            alert("Envoi du flux SMS Tracing vers le terminal " + num);
+        }
+
+        // Script opérationnel pour le bouton approvisionnement
+        function provisionner(num) {
+            // Si l'utilisateur vient du dashboard, on s'assure qu'il n'est plus considéré comme "nouveau"
+            // pour que la recharge soit traitée comme un approvisionnement classique (sauf si vous voulez garder le bonus)
+            if(localStorage.getItem('kt_auth_status') === 'registered') {
+                localStorage.setItem('kt_auth_status', 'active');
+            }
+            
+            // Redirection vers le portail de paie
+            window.location.href = 'approvisionnement.html';
+        }
+    </script>
+</body>
+</html>

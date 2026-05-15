@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inscription - Kimia Track</title>
+    <style>
+        :root { --primary: #38bdf8; --bg: #0f172a; --card: #1e293b; --text: #f1f5f9; --accent: #eab308; --success: #22c55e; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 20px; }
+        .header { text-align: center; margin-bottom: 30px; }
+        h2 { color: var(--primary); margin: 0; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; color: #94a3b8; font-size: 13px; }
+        input, select { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #334155; background: var(--card); color: white; box-sizing: border-box; font-size: 14px; }
+        .appareil-paiement-card { background: #1e293b; border: 1px solid var(--primary); padding: 15px; border-radius: 12px; margin-bottom: 25px; position: relative; }
+        .appareil-header { background: var(--primary); color: var(--bg); padding: 5px 12px; border-radius: 6px; font-weight: 800; font-size: 12px; display: inline-block; margin-bottom: 10px; }
+        .btn-inscription { background: var(--success); color: white; border: none; padding: 18px; width: 100%; border-radius: 10px; font-weight: bold; font-size: 18px; cursor: pointer; box-shadow: 0 4px 15px rgba(34, 197, 94, 0.3); }
+        
+        #safety-modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(15, 23, 42, 0.95); z-index:9999; justify-content:center; align-items:center; padding:20px; box-sizing: border-box; }
+        .modal-box { background: var(--card); padding: 30px; border-radius: 20px; border: 1px solid var(--primary); text-align: center; width: 100%; max-width: 400px; }
+        .btn-wa { background: #25D366; color: white; padding: 15px; border-radius: 10px; display: block; text-decoration: none; font-weight: bold; margin: 20px 0; }
+        .btn-continue { background: var(--primary); color: var(--bg); padding: 15px; border-radius: 10px; display: block; text-decoration: none; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h2>Configuration & Activation</h2>
+        <p style="font-size: 13px; opacity: 0.7;">Initialisation sécurisée du traceur</p>
+    </div>
+
+    <form id="formInscription">
+        <div class="form-group">
+            <label>Votre Identité (Propriétaire)</label>
+            <input type="text" id="nom" placeholder="Nom ou Pseudo" required>
+        </div>
+        <div class="form-group">
+            <label>Votre WhatsApp Principal</label>
+            <input type="tel" id="telephone" placeholder="Ex: 08..." required>
+        </div>
+        <div class="form-group">
+            <label>Mode d'accès</label>
+            <select id="mode_acces" onchange="genererBlocsAppareils()">
+                <option value="GOLD">Pack Gold (5500 FC - Illimité)</option>
+                <option value="DEMO">Pack Demo (Gratuit - 30 min)</option>
+            </select>
+        </div>
+        <div class="form-group" id="group-nb-cibles">
+            <label>Combien d'appareils à activer ?</label>
+            <select id="nb_cibles" onchange="genererBlocsAppareils()">
+                <option value="1">1 Appareil</option>
+                <option value="2">2 Appareils</option>
+                <option value="3">3 Appareils</option>
+                <option value="5">5 Appareils</option>
+            </select>
+        </div>
+
+        <div id="container-appareils"></div>
+
+        <div class="form-group">
+            <label>Mot de passe secret pour le Menu</label>
+            <input type="password" id="pass" placeholder="********" required>
+        </div>
+
+        <button type="button" class="btn-inscription" onclick="validerTout()">ACTIVER L'ACCÈS</button>
+    </form>
+
+    <div id="safety-modal">
+        <div class="modal-box">
+            <h3 style="color:var(--success); margin-top:0;">✅ Profil Enregistré !</h3>
+            <p style="font-size: 14px;">Votre configuration est sauvegardée. Pour finaliser l'activation :</p>
+            <a href="#" id="wa-final-link" target="_blank" class="btn-wa">🚀 Envoyer mon ID via WhatsApp</a>
+            <div style="margin: 15px 0; font-size: 11px; color: #94a3b8;">OU SI WHATSAPP NE S'OUVRE PAS :</div>
+            <a href="#" id="next-step-link" class="btn-continue">Continuer vers l'application</a>
+        </div>
+    </div>
+
+    <script>
+        function genererBlocsAppareils() {
+            const mode = document.getElementById('mode_acces').value;
+            const container = document.getElementById('container-appareils');
+            const nbSelectGroup = document.getElementById('group-nb-cibles');
+            let n = (mode === "DEMO") ? 1 : document.getElementById('nb_cibles').value;
+            
+            nbSelectGroup.style.display = (mode === "DEMO") ? "none" : "block";
+            container.innerHTML = "";
+
+            for(let i = 1; i <= n; i++) {
+                container.innerHTML += `
+                    <div class="appareil-paiement-card">
+                        <div class="appareil-header">APPAREIL #${i}</div>
+                        <div class="form-group"><label>Numéro de la cible (à tracer)</label>
+                        <input type="tel" class="target-num" placeholder="08..." required></div>
+                    </div>`;
+            }
+        }
+        window.onload = genererBlocsAppareils;
+
+        function validerTout() {
+            const nom = document.getElementById('nom').value;
+            const tel = document.getElementById('telephone').value;
+            const pass = document.getElementById('pass').value;
+            const mode = document.getElementById('mode_acces').value;
+
+            if(!nom || !tel || !pass) { alert("Champs obligatoires !"); return; }
+
+            // CAPTURE DES CIBLES POUR APPROVISIONNEMENT.HTML
+            let cibles = [];
+            document.querySelectorAll('.target-num').forEach(input => {
+                if(input.value) cibles.push(input.value);
+            });
+            localStorage.setItem('kt_cibles_list', JSON.stringify(cibles));
+
+            // SAUVEGARDE DES INFOS UTILISATEUR
+            const sessionID = (mode === "DEMO" ? "DEMO-" : "KT-2026-") + Math.floor(1000 + Math.random() * 9000);
+            localStorage.setItem('kt_auth_status', 'registered');
+            localStorage.setItem('kt_session_id', sessionID);
+            localStorage.setItem('kt_user_tel', tel);
+            localStorage.setItem('kt_user_nom', nom);
+
+            // CONFIGURATION DU MODAL ET REDIRECTION
+            const msg = `*INSCRIPTION ${mode}*\nID: ${sessionID}\nNom: ${nom}`;
+            document.getElementById('wa-final-link').href = `https://wa.me/243861769481?text=${encodeURIComponent(msg)}`;
+            
+            // REDIRECTION VERS APPROVISIONNEMENT.HTML
+            document.getElementById('next-step-link').href = (mode === "GOLD") ? "approvisionnement.html" : "identification.html";
+
+            document.getElementById('safety-modal').style.display = 'flex';
+        }
+    </script>
+</body>
+</html>

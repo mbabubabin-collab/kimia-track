@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guide Utilisateur - Kimia Track</title>
+    <style>
+        :root { 
+            --primary: #38bdf8; --bg: #0f172a; --card: #1e293b; 
+            --text: #f1f5f9; --accent: #eab308; --success: #22c55e; 
+        }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 15px; line-height: 1.5; }
+        
+        .header { text-align: center; border-bottom: 2px solid var(--primary); padding-bottom: 15px; margin-bottom: 20px; }
+        .phase-card { background: var(--card); border-radius: 12px; padding: 15px; margin-bottom: 20px; border: 1px solid #334155; }
+        .phase-title { color: var(--primary); font-weight: bold; font-size: 16px; display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+        
+        .badge { background: var(--primary); color: #0f172a; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; }
+        .important { border-left: 4px solid var(--accent); background: rgba(234, 179, 8, 0.1); padding: 10px; font-size: 13px; margin: 10px 0; }
+        
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 12px; }
+        th { text-align: left; color: #94a3b8; padding: 8px; border-bottom: 1px solid #334155; }
+        td { padding: 8px; border-bottom: 1px solid #334155; }
+
+        .btn-back { display: block; width: 100%; background: var(--primary); color: #0f172a; text-align: center; padding: 15px; border-radius: 8px; text-decoration: none; font-weight: bold; margin-top: 20px; }
+        .support-box { text-align: center; font-size: 12px; color: #94a3b8; margin-top: 20px; padding: 15px; border-top: 1px solid #334155; }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1 style="margin:0; font-size: 20px;">📖 Manuel d'Utilisation</h1>
+        <p style="font-size: 12px; color: #94a3b8;">Kimia Track v4.0 - Intelligence Géospatiale</p>
+    </div>
+
+    <!-- PHASE 1 -->
+    <div class="phase-card">
+        <div class="phase-title"><span>1️⃣</span> Phase d'Activation (Captage)</div>
+        <p style="font-size: 13px;">Pour surveiller un appareil, vous devez établir une liaison satellite via le <strong>Captage Silencieux</strong>.</p>
+        <div class="important">
+            <strong>RÈGLE D'OR :</strong> Une fois que le statut devient <strong>"CAPTAGE ACTIF"</strong>, la liaison est permanente. Vous n'avez plus besoin de recommencer les jours suivants.
+        </div>
+    </div>
+
+    <!-- PHASE 2 -->
+    <div class="phase-card">
+        <div class="phase-title"><span>2️⃣</span> Phase de Tracking (Suivi Tactique)</div>
+        <p style="font-size: 13px;">L'application surveille la position initiale. Si la cible s'écarte de <strong>30 à 50 mètres</strong>, une <strong>alerte sonore</strong> retentit sur votre téléphone.</p>
+        
+        <table>
+            <thead>
+                <tr>
+                    <th>ACTION</th>
+                    <th>COÛT</th>
+                    <th>RÉSULTAT</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>Alerte Sonore</strong></td>
+                    <td><span style="color:var(--success)">GRATUIT</span></td>
+                    <td>Signal automatique en cas de mouvement.</td>
+                </tr>
+                <tr>
+                    <td><strong>SMS Tracing</strong></td>
+                    <td>1 SMS Data</td>
+                    <td><strong>Indispensable</strong> : Prend en charge le GPS cible.</td>
+                </tr>
+                <tr>
+                    <td><strong>Itinéraire</strong></td>
+                    <td>1 SMS Data</td>
+                    <td>Tracé exact, bus/motos et horaires.</td>
+                </tr>
+                <tr>
+                    <td><strong>Captation Image</strong></td>
+                    <td>1 SMS Data</td>
+                    <td>Vue satellite et espaces côtoyés.</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- PHASE 3 -->
+    <div class="phase-card">
+        <div class="phase-title"><span>3️⃣</span> Approvisionnement & Pompage</div>
+        <p style="font-size: 13px;">Pour effectuer vos actions de tracing, vous devez charger votre pack de munitions.</p>
+        <ul style="font-size: 13px; padding-left: 20px;">
+            <li><strong>Le Pack :</strong> 5 500 FC = 50 SMS Data.</li>
+            <li><strong>Transfert :</strong> Envoyez les fonds au numéro Admin détecté.</li>
+            <li><strong>Validation :</strong> Entrez votre code de transaction SMS.</li>
+        </ul>
+        <div class="important" style="border-color: var(--success);">
+            <strong>DÉLAI :</strong> L'administrateur confirme et "pompe" votre solde en <strong>moins de 5 minutes</strong> après réception.
+        </div>
+    </div>
+
+    <!-- SUPPORT -->
+    <div class="support-box">
+        <p>Un problème ? Une réclamation ?</p>
+        <strong style="color: var(--primary); font-size: 16px;">WhatsApp Support : 0861769481</strong>
+        <p style="font-size: 10px; margin-top: 10px;">Munissez-vous toujours de votre numéro de réclamation unique généré lors de l'achat.</p>
+    </div>
+
+    <a href="menu.html" class="btn-back">J'AI COMPRIS, RETOUR AU MENU</a>
+
+</body>
+</html>

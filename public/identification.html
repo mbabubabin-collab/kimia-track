@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Identification - Kimia Track</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background: #0f172a; color: white; margin: 0; padding: 20px; }
+        .header { text-align: center; margin-bottom: 30px; }
+        h2 { color: #38bdf8; margin-bottom: 5px; }
+        .subtitle { color: #94a3b8; font-size: 14px; }
+        .auth-box { background: #1e293b; padding: 20px; border-radius: 15px; border: 1px solid #334155; margin-bottom: 30px; }
+        input { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #475569; background: #0f172a; color: white; box-sizing: border-box; margin-bottom: 10px; }
+        .choix-container { display: flex; flex-direction: column; gap: 15px; }
+        .option-demo { background: #334155; padding: 15px; border-radius: 12px; border-left: 5px solid #94a3b8; cursor: pointer; }
+        .option-premium { background: #1e3a8a; padding: 15px; border-radius: 12px; border-left: 5px solid #fbbf24; cursor: pointer; position: relative; }
+        .badge-premium { background: #fbbf24; color: black; font-size: 10px; font-weight: bold; padding: 3px 8px; border-radius: 5px; position: absolute; top: 10px; right: 10px; }
+        h4 { margin: 0; font-size: 18px; }
+        p { margin: 5px 0 0; font-size: 13px; color: #cbd5e1; }
+        .prix { font-weight: bold; color: #fbbf24; font-size: 16px; display: block; margin-top: 5px; }
+        .btn-connexion { background: #38bdf8; color: #0f172a; border: none; padding: 12px; width: 100%; border-radius: 8px; font-weight: bold; margin-bottom: 15px; cursor: pointer; }
+        .btn-retour { display: block; text-align: center; margin-top: 25px; color: #64748b; text-decoration: none; font-size: 14px; }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h2>Content de vous revoir</h2>
+        <p class="subtitle">Connectez-vous pour accéder à vos services</p>
+    </div>
+
+    <div class="auth-box">
+        <input id="input_tel" type="tel" placeholder="N° de téléphone (ex: 08...)">
+        <input id="input_pass" type="password" placeholder="Mot de passe secret">
+        <button class="btn-connexion" onclick="validerConnexion()">SE CONNECTER</button>
+    </div>
+
+    <div class="header">
+        <h3>Nouveau sur Kimia Track ?</h3>
+    </div>
+
+    <div class="choix-container">
+        <div class="option-demo" onclick="window.location.href='inscription.html'">
+            <h4>Version DÉMO</h4>
+            <p>Testez la précision du signal gratuitement pendant 30 min.</p>
+            <span class="prix">Gratuit</span>
+        </div>
+
+        <div class="option-premium" onclick="window.location.href='inscription.html'">
+            <span class="badge-premium">RECOMMANDÉ</span>
+            <h4>KIMIA GOLD</h4>
+            <p>Suivi illimité et protection totale de vos appareils.</p>
+            <span class="prix">5.500 FC (Activation unique)</span>
+        </div>
+    </div>
+
+    <a href="index.html" class="btn-retour">Annuler et revenir à l'accueil</a>
+
+    <script>
+        function validerConnexion() {
+            const telSaisi = document.getElementById('input_tel').value;
+            const passSaisi = document.getElementById('input_pass').value;
+
+            // Récupération des données d'inscription stockées
+            const storedTel = localStorage.getItem('kt_user_tel');
+            const storedPass = localStorage.getItem('kt_user_pass');
+            const authStatus = localStorage.getItem('kt_auth_status');
+
+            // 1. Vérification Admin (votre accès personnel)
+            const ADMIN_TEL = "243861769481"; 
+            const ADMIN_PASS = "BMM2026";
+
+            if (telSaisi === ADMIN_TEL && passSaisi === ADMIN_PASS) {
+                sessionStorage.setItem('auth_kimia', 'success');
+                window.location.href = 'menu.html';
+                return;
+            }
+
+            // 2. Vérification Utilisateur Inscrit (Intelligence Captante)
+            // On vérifie si le numéro et le mot de passe correspondent à l'inscription récente
+            if (authStatus === 'registered' && telSaisi === storedTel && passSaisi === storedPass) {
+                sessionStorage.setItem('auth_kimia', 'success');
+                alert("Connexion réussie !");
+                window.location.href = 'menu.html';
+            } else {
+                alert("Accès refusé : Aucun compte trouvé avec ces identifiants ou mot de passe incorrect.");
+            }
+        }
+
+        // Sécurité supplémentaire : Si l'utilisateur est déjà "connecté", redirection directe
+        window.onload = function() {
+            if(sessionStorage.getItem('auth_kimia') === 'success') {
+                // Optionnel : décommentez la ligne suivante pour auto-connecter
+                // window.location.href = 'menu.html';
+            }
+        }
+    </script>
+</body>
+</html>

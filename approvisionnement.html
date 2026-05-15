@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Approvisionnement - Kimia Track</title>
+    <style>
+        :root { --primary: #38bdf8; --bg: #0f172a; --card: #1e293b; --text: #f1f5f9; --accent: #eab308; --promo: #a855f7; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 15px; }
+        
+        .step { display: none; }
+        .step.active { display: block; }
+
+        .header { text-align: center; margin-bottom: 25px; }
+        .card { background: var(--card); padding: 20px; border-radius: 15px; border: 1px solid #334155; position: relative; }
+        
+        input, select { 
+            width: 100%; padding: 12px; margin: 10px 0; border-radius: 8px; 
+            border: 1px solid #475569; background: #0f172a; color: white; box-sizing: border-box;
+        }
+
+        .network-badge { 
+            display: inline-block; padding: 5px 12px; border-radius: 20px; 
+            font-size: 10px; font-weight: bold; margin-bottom: 10px; 
+        }
+        .airtel { background: #ff0000; color: white; }
+        .orange { background: #ff6600; color: white; }
+        .vodacom { background: #e60000; color: white; }
+
+        /* Badge Promo / Bonus */
+        .bonus-tag { 
+            background: var(--promo); color: white; font-size: 10px; padding: 4px 8px; 
+            border-radius: 5px; font-weight: bold; margin-bottom: 10px; display: none; 
+        }
+
+        /* Système de Verrouillage */
+        .lock-overlay { 
+            display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
+            background: rgba(15, 23, 42, 0.9); border-radius: 15px; z-index: 10; 
+            flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 20px; box-sizing: border-box;
+        }
+
+        .info-paiement { background: rgba(234, 179, 8, 0.1); border: 1px dashed var(--accent); padding: 15px; border-radius: 10px; margin: 15px 0; }
+        .btn-next { background: var(--primary); color: #0f172a; border: none; width: 100%; padding: 15px; border-radius: 10px; font-weight: bold; cursor: pointer; }
+        .btn-promo { background: var(--promo); color: white; margin-top: 10px; }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h2 id="page-title" style="font-size: 18px; margin: 0;">💳 Recharger un Appareil</h2>
+        <p id="page-desc" style="font-size: 12px; color: #94a3b8;">Data / SMS de Tracing</p>
+    </div>
+
+    <div class="step active" id="step1">
+        <div class="card">
+            <div id="promo-lock" class="lock-overlay">
+                <div style="font-size: 30px;">🎁</div>
+                <h4 style="margin: 10px 0; color: var(--promo);">OFFRE PROMOTIONNELLE</h4>
+                <p style="font-size: 11px; color: #94a3b8;">Partagez l'application à 5 contacts ou 2 groupes pour débloquer votre bonus de bienvenue.</p>
+                <button class="btn-next btn-promo" onclick="checkPromo()">Vérifier le partage</button>
+            </div>
+
+            <div id="bonus-banner" class="bonus-tag">🎁 PREMIÈRE INSCRIPTION : 2X PLUS DE DATA !</div>
+            
+            <label>Sélectionnez l'appareil à alimenter :</label>
+            <select id="select-cible"></select>
+            <button class="btn-next" onclick="goToStep(2)">Continuer vers le paiement</button>
+        </div>
+    </div>
+
+    <div class="step" id="step2">
+        <div class="card">
+            <label>Votre numéro d'envoi d'argent :</label>
+            <input type="tel" id="sender-num" placeholder="Ex: 097000..." oninput="detecterReseau(this.value)">
+            
+            <div id="network-status"></div>
+
+            <div class="info-paiement">
+                <small>Montant à verser :</small><br>
+                <strong id="display-price" style="font-size: 18px; color: var(--accent);">5500 FC</strong><br>
+                <small>Numéro destinataire :</small><br>
+                <strong id="admin-num" style="font-size: 16px;">Veuillez saisir votre numéro</strong>
+            </div>
+
+            <label>Code de transaction (ID) :</label>
+            <input type="text" id="transaction-code" placeholder="Entrez le code ID de la transaction">
+            
+            <button class="btn-next" onclick="finaliser()">LANCER LE PROCESSUS</button>
+        </div>
+    </div>
+
+    <div class="step" id="step3">
+        <div class="card" style="text-align: center;">
+            <div style="font-size: 40px; margin-bottom: 20px;">⏳</div>
+            <h3>Demande envoyée !</h3>
+            <p id="final-msg" style="font-size: 13px; color: #94a3b8;">L'administrateur confirme votre transfert sous 5 minutes.</p>
+            <button class="btn-next" style="background:#334155; color:white;" onclick="window.location.href='menu.html'">Retour au Menu</button>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        // Optionnel : import { getFirestore, addDoc, collection } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDMbGjSqRrW009qL-mY_e8_44E968-S8kM",
+            authDomain: "kimia-track.firebaseapp.com",
+            projectId: "kimia-track",
+            storageBucket: "kimia-track.appspot.com",
+            messagingSenderId: "1084669636444",
+            appId: "1:1084669636444:web:10868bc2cfe7b5ba005b99"
+        };
+
+        const app = initializeApp(firebaseConfig);
+
+        // Rendre les fonctions globales pour les événements onclick
+        window.onload = function() {
+            const select = document.getElementById('select-cible');
+            const ciblesData = localStorage.getItem('kt_cibles_list');
+            const isFirstTime = localStorage.getItem('kt_auth_status') === 'registered';
+            
+            if(isFirstTime) {
+                document.getElementById('bonus-banner').style.display = 'block';
+                document.getElementById('page-title').innerText = "🎁 Activation & Bonus";
+                document.getElementById('final-msg').innerText = "Votre bonus X2 sera appliqué dès validation.";
+                
+                const promoActive = true; 
+                if(promoActive) {
+                    document.getElementById('promo-lock').style.display = 'flex';
+                }
+            }
+
+            if(ciblesData) {
+                const cibles = JSON.parse(ciblesData);
+                cibles.forEach((num, index) => {
+                    let opt = document.createElement('option');
+                    opt.value = num;
+                    opt.innerHTML = `Cible ${index + 1} (${num})`;
+                    select.appendChild(opt);
+                });
+            } else {
+                select.innerHTML = '<option value="aucun">Aucun numéro détecté</option>';
+            }
+        };
+
+        window.checkPromo = function() {
+            alert("Merci pour le partage ! Accès déverrouillé.");
+            document.getElementById('promo-lock').style.display = 'none';
+        }
+
+        window.goToStep = function(s) {
+            document.querySelectorAll('.step').forEach(step => step.classList.remove('active'));
+            document.getElementById('step' + s).classList.add('active');
+        }
+
+        window.detecterReseau = function(num) {
+            const status = document.getElementById('network-status');
+            const adminNumDisplay = document.getElementById('admin-num');
+            if(/^0(97|99)/.test(num)) {
+                status.innerHTML = '<span class="network-badge airtel">AIRTEL</span>';
+                adminNumDisplay.innerText = "0971234567"; 
+            } else if(/^0(81|82)/.test(num)) {
+                status.innerHTML = '<span class="network-badge vodacom">VODACOM</span>';
+                adminNumDisplay.innerText = "0819876543"; 
+            } else if(/^0(89|84|85)/.test(num)) {
+                status.innerHTML = '<span class="network-badge orange">ORANGE</span>';
+                adminNumDisplay.innerText = "0890000000"; 
+            }
+        }
+
+        window.finaliser = function() {
+            const code = document.getElementById('transaction-code').value;
+            const sender = document.getElementById('sender-num').value;
+            const target = document.getElementById('select-cible').value;
+
+            if(!code || !sender) { alert("Veuillez remplir les informations de paiement."); return; }
+            
+            // Ici, vous pourriez envoyer les données vers Firestore pour que l'admin les reçoive
+            console.log("Paiement soumis : ", { sender, target, code });
+
+            localStorage.setItem('kt_auth_status', 'active'); 
+            alert("Demande de paiement envoyée à l'administrateur.");
+            window.goToStep(3);
+        }
+    </script>
+</body>
+</html>

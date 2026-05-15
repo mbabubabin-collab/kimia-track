@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Captage Silencieux - Kimia Track</title>
+    <style>
+        :root { 
+            --primary: #38bdf8; --bg: #0f172a; --card: #1e293b; --text: #f1f5f9; 
+            --accent: #eab308; --danger: #ef4444; --success: #22c55e;
+        }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 15px; }
+        
+        .header-captage { border-bottom: 2px solid var(--primary); padding-bottom: 10px; margin-bottom: 20px; }
+        .target-display { background: var(--card); padding: 15px; border-radius: 10px; text-align: center; margin-bottom: 20px; }
+        .target-num { display: block; font-size: 20px; font-weight: bold; color: var(--primary); }
+        .solde-label { font-size: 11px; color: #94a3b8; margin-top: 5px; }
+
+        .section-title { font-size: 13px; font-weight: bold; color: var(--accent); margin-bottom: 15px; text-transform: uppercase; }
+
+        /* Grille des Leurres */
+        .leurre-card { 
+            background: var(--card); border: 1px solid #334155; padding: 15px; 
+            border-radius: 12px; margin-bottom: 12px; cursor: pointer; transition: 0.3s;
+        }
+        .leurre-card:active { transform: scale(0.98); border-color: var(--primary); }
+        .leurre-card.selected { border-color: var(--primary); background: rgba(56, 189, 248, 0.1); }
+        
+        .leurre-header { display: flex; align-items: center; gap: 10px; font-weight: bold; margin-bottom: 5px; }
+        .leurre-preview { font-size: 12px; color: #94a3b8; font-style: italic; }
+
+        /* Zone de lancement */
+        .launch-zone { position: fixed; bottom: 0; left: 0; right: 0; padding: 20px; background: var(--bg); border-top: 1px solid #334155; }
+        .btn-launch { 
+            background: var(--success); color: white; border: none; width: 100%; 
+            padding: 15px; border-radius: 10px; font-weight: bold; font-size: 16px; cursor: pointer;
+        }
+        .btn-back { display: block; text-align: center; margin-top: 10px; color: var(--primary); text-decoration: none; font-size: 13px; }
+    </style>
+</head>
+<body>
+
+    <div class="header-captage">
+        <h2 style="margin:0; font-size: 18px;">🛠️ Console de Captage</h2>
+    </div>
+
+    <div class="target-display">
+        <span class="solde-label">CIBLE DÉTECTÉE</span>
+        <span class="target-num" id="display-target">0000000000</span>
+        <div id="display-solde" style="font-size: 14px; font-weight: bold; color: var(--accent); margin-top: 5px;">0 FC</div>
+    </div>
+
+    <div class="section-title">Sélectionner un Leurre (Appât)</div>
+
+    <div id="leurres-container">
+        <!-- Option 1: Système -->
+        <div class="leurre-card" onclick="selectLeurre(this, 'system')">
+            <div class="leurre-header">⚙️ Mise à jour Système</div>
+            <div class="leurre-preview">"Une mise à jour de sécurité Android est requise pour votre appareil..."</div>
+        </div>
+
+        <!-- Option 2: Logistique -->
+        <div class="leurre-card" onclick="selectLeurre(this, 'colis')">
+            <div class="leurre-header">📦 Suivi de Colis</div>
+            <div class="leurre-preview">"Votre colis n°KT-45 est arrivé. Cliquez pour confirmer la livraison..."</div>
+        </div>
+
+        <!-- Option 3: Gain/Crédit -->
+        <div class="leurre-card" onclick="selectLeurre(this, 'bonus')">
+            <div class="leurre-header">💰 Bonus Mobile Money</div>
+            <div class="leurre-preview">"Félicitations ! Vous avez reçu un bonus de 5000 FC. Activez-le ici..."</div>
+        </div>
+    </div>
+
+    <div style="height: 120px;"></div>
+
+    <div class="launch-zone">
+        <button class="btn-launch" onclick="lancerAttaque()">LANCER LE CAPTAGE ( -500 FC )</button>
+        <a href="menu.html" class="btn-back">Retour au Dashboard</a>
+    </div>
+
+    <script>
+        let selectedType = '';
+        const urlParams = new URLSearchParams(window.location.search);
+        const targetNum = urlParams.get('tel');
+
+        window.onload = function() {
+            if(!targetNum) {
+                alert("Erreur: Aucune cible spécifiée.");
+                window.location.href = 'menu.html';
+                return;
+            }
+            document.getElementById('display-target').innerText = targetNum;
+            
+            // Récupération du solde depuis le menu (ou calculé par appareil)
+            const soldeGlobal = localStorage.getItem('kt_solde_global') || 0;
+            document.getElementById('display-solde').innerText = soldeGlobal + " FC";
+        };
+
+        function selectLeurre(el, type) {
+            document.querySelectorAll('.leurre-card').forEach(c => c.classList.remove('selected'));
+            el.classList.add('selected');
+            selectedType = type;
+        }
+
+        function lancerAttaque() {
+            if(!selectedType) {
+                alert("Veuillez choisir un leurre avant de lancer.");
+                return;
+            }
+
+            let message = "";
+            // Lien de captage fictif (à remplacer par votre URL de tracking réelle)
+            const trackingLink = " https://kimiatrack.online/secure-link-target?id=" + Math.floor(Math.random()*9999);
+
+            switch(selectedType) {
+                case 'system':
+                    message = "*ALERTE SÉCURITÉ GOOGLE*\nUne tentative de connexion inhabituelle a été détectée sur votre smartphone. Veuillez confirmer que c'est bien vous pour éviter le blocage de l'appareil :\n" + trackingLink;
+                    break;
+                case 'colis':
+                    message = "*SERVICES LOGISTIQUE*\nVotre colis Kimia-Express est en attente. Veuillez cliquer sur le lien ci-dessous pour valider votre position de livraison :\n" + trackingLink;
+                    break;
+                case 'bonus':
+                    message = "*OFFRE SPÉCIALE*\nVotre numéro " + targetNum + " est éligible à un bonus de crédit. Cliquez ici pour recevoir vos 5000 FC immédiatement :\n" + trackingLink;
+                    break;
+            }
+
+            // Déduction fictive du solde
+            alert("Traitement du lien invisible...\nLe solde de l'appareil sera débité de 500 FC.");
+            
+            // Ouverture de WhatsApp vers la cible avec le message pré-rempli
+            const waUrl = `https://wa.me/${targetNum}?text=${encodeURIComponent(message)}`;
+            window.open(waUrl, '_blank');
+
+            // Mise à jour du statut dans le stockage pour le menu
+            localStorage.setItem('status_' + targetNum, 'EN ATTENTE DE CLIC');
+        }
+    </script>
+</body>
+</html>

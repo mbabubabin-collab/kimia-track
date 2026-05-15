@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SMS Tracing - Kimia Track</title>
+    <style>
+        :root { 
+            --primary: #38bdf8; --bg: #020617; --card: #1e293b; --text: #f1f5f9; 
+            --accent: #22c55e; --warning: #eab308;
+        }
+        body { font-family: 'Courier New', monospace; background: var(--bg); color: var(--text); margin: 0; padding: 15px; }
+        
+        .terminal-header { border-bottom: 1px solid var(--primary); padding-bottom: 10px; margin-bottom: 20px; }
+        .target-box { background: rgba(56, 189, 248, 0.1); border: 1px solid var(--primary); padding: 15px; border-radius: 8px; margin-bottom: 20px; }
+        
+        .console { background: black; padding: 15px; border-radius: 5px; font-size: 12px; height: 150px; overflow-y: auto; color: #00ff00; border: 1px solid #334155; margin-bottom: 20px; }
+        
+        .option-card { 
+            background: var(--card); padding: 15px; border-radius: 10px; margin-bottom: 10px; 
+            border: 1px solid #334155; cursor: pointer;
+        }
+        .option-card.active { border-color: var(--accent); background: rgba(34, 197, 94, 0.05); }
+        .cost { float: right; color: var(--warning); font-weight: bold; }
+
+        .btn-send { 
+            background: var(--primary); color: #020617; border: none; width: 100%; 
+            padding: 18px; border-radius: 10px; font-weight: bold; font-size: 16px; cursor: pointer;
+            box-shadow: 0 0 15px rgba(56, 189, 248, 0.4);
+        }
+        .btn-back { display: block; text-align: center; margin-top: 15px; color: #94a3b8; text-decoration: none; font-size: 13px; }
+    </style>
+</head>
+<body>
+
+    <div class="terminal-header">
+        <h2 style="margin:0; font-size: 16px; color: var(--primary);">📡 PROTOCOLE SMS-TRACING v4.0</h2>
+    </div>
+
+    <div class="target-box">
+        <div style="font-size: 10px; color: var(--primary);">CIBLE DISTANTE :</div>
+        <div style="font-size: 22px; font-weight: bold;" id="display-num">0000000000</div>
+        <div style="font-size: 12px; color: var(--warning); margin-top: 5px;">Solde Appareil: <span id="display-solde">0</span> FC</div>
+    </div>
+
+    <div class="console" id="console-logs">
+        > Initialisation du canal SMS...<br>
+        > En attente d'instruction...
+    </div>
+
+    <div class="section-title" style="font-size: 11px; color: #94a3b8; margin-bottom: 10px;">CHOISIR LA MÉTHODE DE CRAQUAGE</div>
+
+    <div class="option-card active" onclick="selectOption(this, 1500, 'PING_GPS')">
+        <span class="cost">-1.500 FC</span>
+        <strong>Ping Localisation</strong><br>
+        <small>Capture de la position actuelle via SMS Data</small>
+    </div>
+
+    <div class="option-card" onclick="selectOption(this, 3500, 'TRACE_ROUTE')">
+        <span class="cost">-3.500 FC</span>
+        <strong>Tracer Itinéraire</strong><br>
+        <small>Forcer le suivi du trajet pendant 30 min</small>
+    </div>
+
+    <div style="height: 40px;"></div>
+
+    <button class="btn-send" onclick="initiateSmsTracing()">ÉMETTRE LE SMS SILENCIEUX</button>
+    <a href="menu.html" class="btn-back">Annuler et retourner</a>
+
+    <script>
+        let selectedCost = 1500;
+        let selectedMethod = 'PING_GPS';
+        const urlParams = new URLSearchParams(window.location.search);
+        const tel = urlParams.get('tel');
+
+        window.onload = function() {
+            if(!tel) {
+                alert("Erreur: Aucune cible détectée.");
+                window.location.href = 'menu.html';
+                return;
+            }
+            document.getElementById('display-num').innerText = tel;
+            document.getElementById('display-solde').innerText = localStorage.getItem('kt_solde_global') || 0;
+        };
+
+        function selectOption(el, cost, method) {
+            document.querySelectorAll('.option-card').forEach(c => c.classList.remove('active'));
+            el.classList.add('active');
+            selectedCost = cost;
+            selectedMethod = method;
+        }
+
+        function initiateSmsTracing() {
+            const soldeActuel = parseInt(localStorage.getItem('kt_solde_global')) || 0;
+            
+            if(soldeActuel < selectedCost) {
+                alert("Solde insuffisant pour cette opération.");
+                return;
+            }
+
+            const logs = document.getElementById('console-logs');
+            logs.innerHTML += `<br>> Connexion au relais Data...`;
+            
+            setTimeout(() => {
+                logs.innerHTML += `<br>> Envoi SMS Silencieux vers ${tel}...`;
+                logs.scrollTop = logs.scrollHeight;
+            }, 1000);
+
+            setTimeout(() => {
+                logs.innerHTML += `<br><span style="color:var(--accent)">> Commande ${selectedMethod} Injectée !</span>`;
+                logs.innerHTML += `<br>> Solde débité de ${selectedCost} FC.`;
+                logs.scrollTop = logs.scrollHeight;
+
+                // Mise à jour du solde
+                const nouveauSolde = soldeActuel - selectedCost;
+                localStorage.setItem('kt_solde_global', nouveauSolde);
+                document.getElementById('display-solde').innerText = nouveauSolde;
+
+                alert("SMS Silencieux émis avec succès. Le craquage GPS est en cours.");
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
