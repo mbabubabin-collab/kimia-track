@@ -79,9 +79,9 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
-        // Ta configuration capturée
+        // Ta configuration mise à jour pour l'environnement en ligne
         const firebaseConfig = {
-            apiKey: "AIzaSyDMbGjSqRrW009qL-mY_e8_44E968-S8kM",
+            apiKey: "AIzaSyDmbGjSqRrW009qL-mY_e8_44E968-S8kM",
             authDomain: "kimia-track.firebaseapp.com",
             projectId: "kimia-track",
             storageBucket: "kimia-track.appspot.com",
@@ -123,7 +123,6 @@
 
             try {
                 // Création du compte dans Firebase Authentication
-                // On utilise le téléphone + @kimiatrack.com comme email fictif pour Firebase
                 const emailFictif = `${tel}@kimiatrack.com`;
                 await createUserWithEmailAndPassword(auth, emailFictif, pass);
 

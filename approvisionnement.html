@@ -101,10 +101,10 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        // Optionnel : import { getFirestore, addDoc, collection } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
+        // Configuration exacte pour le déploiement sur GitHub Pages
         const firebaseConfig = {
-            apiKey: "AIzaSyDMbGjSqRrW009qL-mY_e8_44E968-S8kM",
+            apiKey: "AIzaSyDmbGjSqRrW009qL-mY_e8_44E968-S8kM",
             authDomain: "kimia-track.firebaseapp.com",
             projectId: "kimia-track",
             storageBucket: "kimia-track.appspot.com",
@@ -176,7 +176,6 @@
 
             if(!code || !sender) { alert("Veuillez remplir les informations de paiement."); return; }
             
-            // Ici, vous pourriez envoyer les données vers Firestore pour que l'admin les reçoive
             console.log("Paiement soumis : ", { sender, target, code });
 
             localStorage.setItem('kt_auth_status', 'active'); 
