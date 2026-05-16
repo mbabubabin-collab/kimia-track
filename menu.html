@@ -46,7 +46,7 @@
         .nav-btn { color: #94a3b8; text-decoration: none; font-size: 12px; display: flex; flex-direction: column; align-items: center; gap: 4px; }
         .nav-btn.active { color: var(--primary); }
         .nav-btn.reclamation { color: var(--accent); }
-        .nav-btn.help { color: #38bdf8; } 
+        .nav-btn.help { color: #38bdf8; } /* Style pour le bouton Aide */
     </style>
 </head>
 <body>
@@ -63,8 +63,10 @@
     </div>
 
     <div class="target-grid" id="target-container">
-        </div>
+        <!-- Les blocs par appareil seront injectés ici -->
+    </div>
 
+    <!-- Navigation Mise à jour avec bouton Aide au flanc gauche -->
     <nav class="nav-bar">
         <a href="aide.html" class="nav-btn help"><span>❓</span>Aide</a>
         <a href="#" class="nav-btn active"><span>📡</span>Radar</a>
@@ -73,32 +75,7 @@
         <a href="identification.html" class="nav-btn"><span>🔒</span>Quitter</a>
     </nav>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-
-        // Configuration exacte pour le déploiement sur GitHub Pages
-        const firebaseConfig = {
-            apiKey: "AIzaSyDmbGjSqRrW009qL-mY_e8_44E968-S8kM",
-            authDomain: "kimia-track.firebaseapp.com",
-            projectId: "kimia-track",
-            storageBucket: "kimia-track.appspot.com",
-            messagingSenderId: "1084669636444",
-            appId: "1:1084669636444:web:10868bc2cfe7b5ba005b99"
-        };
-
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-
-        // Vérification de la connexion
-        onAuthStateChanged(auth, (user) => {
-            const adminAuth = sessionStorage.getItem('auth_kimia') === 'success';
-            if (!user && !adminAuth) {
-                // Si pas de session Firebase et pas de session Admin, retour à la connexion
-                window.location.href = 'identification.html';
-            }
-        });
-
+    <script>
         window.onload = function() {
             const nom = localStorage.getItem('kt_user_nom') || "Agent Kimia";
             const session = localStorage.getItem('kt_session_id') || "KT-OFFLINE";
@@ -119,6 +96,7 @@
                 return;
             }
 
+            // Récupération de la liste complète des cibles ou du numéro principal par défaut
             let listeNumeros = [];
             if(ciblesData) {
                 listeNumeros = JSON.parse(ciblesData);
@@ -165,22 +143,27 @@
             });
         };
 
-        window.triggerCaptation = function(num) {
+        function triggerCaptation(num) {
             alert("Lancement de la captation silencieuse sur " + num + "\nÉcoute environnementale cryptée en cours...");
         }
 
-        window.traceItineraire = function(num) {
+        function traceItineraire(num) {
             alert("Récupération de l'itinéraire de " + num + "\nSynchronisation avec les balises locales...");
         }
 
-        window.sendSMSTracing = function(num) {
+        function sendSMSTracing(num) {
             alert("Envoi du flux SMS Tracing vers le terminal " + num);
         }
 
-        window.provisionner = function(num) {
+        // Script opérationnel pour le bouton approvisionnement
+        function provisionner(num) {
+            // Si l'utilisateur vient du dashboard, on s'assure qu'il n'est plus considéré comme "nouveau"
+            // pour que la recharge soit traitée comme un approvisionnement classique (sauf si vous voulez garder le bonus)
             if(localStorage.getItem('kt_auth_status') === 'registered') {
                 localStorage.setItem('kt_auth_status', 'active');
             }
+            
+            // Redirection vers le portail de paie
             window.location.href = 'approvisionnement.html';
         }
     </script>

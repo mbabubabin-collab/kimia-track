@@ -56,33 +56,17 @@
 
     <a href="index.html" class="btn-retour">Annuler et revenir à l'accueil</a>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-
-        // Configuration exacte pour le déploiement sur GitHub Pages
-        const firebaseConfig = {
-            apiKey: "AIzaSyDmbGjSqRrW009qL-mY_e8_44E968-S8kM",
-            authDomain: "kimia-track.firebaseapp.com",
-            projectId: "kimia-track",
-            storageBucket: "kimia-track.appspot.com",
-            messagingSenderId: "1084669636444",
-            appId: "1:1084669636444:web:10868bc2cfe7b5ba005b99"
-        };
-
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-
-        window.validerConnexion = async function() {
+    <script>
+        function validerConnexion() {
             const telSaisi = document.getElementById('input_tel').value;
             const passSaisi = document.getElementById('input_pass').value;
 
-            if(!telSaisi || !passSaisi) {
-                alert("Veuillez remplir tous les champs.");
-                return;
-            }
+            // Récupération des données d'inscription stockées
+            const storedTel = localStorage.getItem('kt_user_tel');
+            const storedPass = localStorage.getItem('kt_user_pass');
+            const authStatus = localStorage.getItem('kt_auth_status');
 
-            // 1. Vérification Admin (votre accès personnel direct)
+            // 1. Vérification Admin (votre accès personnel)
             const ADMIN_TEL = "243861769481"; 
             const ADMIN_PASS = "BMM2026";
 
@@ -92,27 +76,21 @@
                 return;
             }
 
-            // 2. Vérification via Firebase Authentication
-            try {
-                const emailFictif = `${telSaisi}@kimiatrack.com`;
-                await signInWithEmailAndPassword(auth, emailFictif, passSaisi);
-                
-                // Si la connexion réussit
+            // 2. Vérification Utilisateur Inscrit (Intelligence Captante)
+            // On vérifie si le numéro et le mot de passe correspondent à l'inscription récente
+            if (authStatus === 'registered' && telSaisi === storedTel && passSaisi === storedPass) {
                 sessionStorage.setItem('auth_kimia', 'success');
+                alert("Connexion réussie !");
                 window.location.href = 'menu.html';
-
-            } catch (error) {
-                console.error(error);
-                let message = "Accès refusé : Identifiants incorrects.";
-                if (error.code === 'auth/user-not-found') message = "Aucun compte trouvé pour ce numéro.";
-                if (error.code === 'auth/wrong-password') message = "Mot de passe incorrect.";
-                
-                alert(message);
+            } else {
+                alert("Accès refusé : Aucun compte trouvé avec ces identifiants ou mot de passe incorrect.");
             }
         }
 
+        // Sécurité supplémentaire : Si l'utilisateur est déjà "connecté", redirection directe
         window.onload = function() {
             if(sessionStorage.getItem('auth_kimia') === 'success') {
+                // Optionnel : décommentez la ligne suivante pour auto-connecter
                 // window.location.href = 'menu.html';
             }
         }

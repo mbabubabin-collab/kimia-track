@@ -75,25 +75,8 @@
         </div>
     </div>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-
-        // Ta configuration mise à jour pour l'environnement en ligne
-        const firebaseConfig = {
-            apiKey: "AIzaSyDmbGjSqRrW009qL-mY_e8_44E968-S8kM",
-            authDomain: "kimia-track.firebaseapp.com",
-            projectId: "kimia-track",
-            storageBucket: "kimia-track.appspot.com",
-            messagingSenderId: "1084669636444",
-            appId: "1:1084669636444:web:10868bc2cfe7b5ba005b99"
-        };
-
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-
-        // On rend les fonctions accessibles au bouton onclick
-        window.genererBlocsAppareils = function() {
+    <script>
+        function genererBlocsAppareils() {
             const mode = document.getElementById('mode_acces').value;
             const container = document.getElementById('container-appareils');
             const nbSelectGroup = document.getElementById('group-nb-cibles');
@@ -111,47 +94,39 @@
                     </div>`;
             }
         }
+        window.onload = genererBlocsAppareils;
 
-        window.validerTout = async function() {
+        function validerTout() {
             const nom = document.getElementById('nom').value;
             const tel = document.getElementById('telephone').value;
             const pass = document.getElementById('pass').value;
             const mode = document.getElementById('mode_acces').value;
 
             if(!nom || !tel || !pass) { alert("Champs obligatoires !"); return; }
-            if(pass.length < 6) { alert("Le mot de passe doit faire au moins 6 caractères pour Firebase."); return; }
 
-            try {
-                // Création du compte dans Firebase Authentication
-                const emailFictif = `${tel}@kimiatrack.com`;
-                await createUserWithEmailAndPassword(auth, emailFictif, pass);
+            // CAPTURE DES CIBLES POUR APPROVISIONNEMENT.HTML
+            let cibles = [];
+            document.querySelectorAll('.target-num').forEach(input => {
+                if(input.value) cibles.push(input.value);
+            });
+            localStorage.setItem('kt_cibles_list', JSON.stringify(cibles));
 
-                // Si succès, on continue ton script habituel
-                let cibles = [];
-                document.querySelectorAll('.target-num').forEach(input => {
-                    if(input.value) cibles.push(input.value);
-                });
-                localStorage.setItem('kt_cibles_list', JSON.stringify(cibles));
+            // SAUVEGARDE DES INFOS UTILISATEUR
+            const sessionID = (mode === "DEMO" ? "DEMO-" : "KT-2026-") + Math.floor(1000 + Math.random() * 9000);
+            localStorage.setItem('kt_auth_status', 'registered');
+            localStorage.setItem('kt_session_id', sessionID);
+            localStorage.setItem('kt_user_tel', tel);
+            localStorage.setItem('kt_user_nom', nom);
 
-                const sessionID = (mode === "DEMO" ? "DEMO-" : "KT-2026-") + Math.floor(1000 + Math.random() * 9000);
-                localStorage.setItem('kt_auth_status', 'registered');
-                localStorage.setItem('kt_session_id', sessionID);
-                localStorage.setItem('kt_user_tel', tel);
-                localStorage.setItem('kt_user_nom', nom);
+            // CONFIGURATION DU MODAL ET REDIRECTION
+            const msg = `*INSCRIPTION ${mode}*\nID: ${sessionID}\nNom: ${nom}`;
+            document.getElementById('wa-final-link').href = `https://wa.me/243861769481?text=${encodeURIComponent(msg)}`;
+            
+            // REDIRECTION VERS APPROVISIONNEMENT.HTML
+            document.getElementById('next-step-link').href = (mode === "GOLD") ? "approvisionnement.html" : "identification.html";
 
-                const msg = `*INSCRIPTION ${mode}*\nID: ${sessionID}\nNom: ${nom}`;
-                document.getElementById('wa-final-link').href = `https://wa.me/243861769481?text=${encodeURIComponent(msg)}`;
-                document.getElementById('next-step-link').href = (mode === "GOLD") ? "approvisionnement.html" : "identification.html";
-
-                document.getElementById('safety-modal').style.display = 'flex';
-
-            } catch (error) {
-                console.error(error);
-                alert("Erreur d'inscription : " + error.message);
-            }
+            document.getElementById('safety-modal').style.display = 'flex';
         }
-
-        window.onload = window.genererBlocsAppareils;
     </script>
 </body>
 </html>
