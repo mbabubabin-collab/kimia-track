@@ -103,5 +103,17 @@
 
     <a href="menu.html" class="btn-back">J'AI COMPRIS, RETOUR AU MENU</a>
 
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        // Configuration de tes clés d'accès Supabase globales
+        const SUPABASE_URL = "https://ufwirghypzowlmeqqgco.supabase.co";
+        const SUPABASE_KEY = "sb_publishable_ZMjol0IAFBrmaZULUzR7IA_Gk31Msqq";
+        
+        // CORRECTION DE LIAISON : Initialisation via le namespace global généré par le CDN
+        const supabase = supabase.supabasejs.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        // La constante "supabase" reste exploitable ici si tu as besoin de charger 
+        // ou mettre à jour dynamiquement des informations du guide depuis ta base.
+    </script>
 </body>
 </html>
