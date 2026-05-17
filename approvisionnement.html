@@ -5,114 +5,166 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Approvisionnement - Kimia Track</title>
     <style>
-        :root { --primary: #38bdf8; --bg: #0f172a; --card: #1e293b; --text: #f1f5f9; --accent: #eab308; }
+        :root { --primary: #38bdf8; --bg: #0f172a; --card: #1e293b; --text: #f1f5f9; --accent: #eab308; --promo: #a855f7; --success: #22c55e; }
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 15px; }
         
-        .step { display: none; }
-        .step.active { display: block; }
-
         .header { text-align: center; margin-bottom: 25px; }
-        .card { background: var(--card); padding: 20px; border-radius: 15px; border: 1px solid #334155; }
+        .card { background: var(--card); padding: 20px; border-radius: 15px; border: 1px solid #334155; position: relative; margin-bottom: 20px; }
         
         input, select { 
             width: 100%; padding: 12px; margin: 10px 0; border-radius: 8px; 
-            border: 1px solid #475569; background: #0f172a; color: white; box-sizing: border-box;
+            border: 1px solid #475569; background: #0f172a; color: white; box-sizing: border-box; font-size: 14px;
         }
 
-        .network-badge { 
-            display: inline-block; padding: 5px 12px; border-radius: 20px; 
-            font-size: 10px; font-weight: bold; margin-bottom: 10px; 
+        .network-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 15px 0; }
+        .network-btn { 
+            background: #0f172a; border: 1px solid #475569; border-radius: 8px; padding: 12px 5px; 
+            color: white; font-weight: bold; font-size: 11px; cursor: pointer; text-align: center;
         }
-        .airtel { background: #ff0000; color: white; }
-        .orange { background: #ff6600; color: white; }
-        .vodacom { background: #e60000; color: white; }
-
-        .info-paiement { background: rgba(234, 179, 8, 0.1); border: 1px dashed var(--accent); padding: 15px; border-radius: 10px; margin: 15px 0; }
+        .network-btn.active { border-color: var(--primary); background: rgba(56, 189, 248, 0.1); }
         
-        .btn-next { background: var(--primary); color: #0f172a; border: none; width: 100%; padding: 15px; border-radius: 10px; font-weight: bold; cursor: pointer; }
+        .airtel { color: #ff0000; }
+        .orange { color: #ff6600; }
+        .vodacom { color: #4ade80; }
+
+        .btn-pay { 
+            background: var(--accent); color: #0f172a; border: none; padding: 18px; 
+            width: 100%; border-radius: 10px; font-weight: bold; font-size: 16px; cursor: pointer;
+            box-shadow: 0 4px 15px rgba(234, 179, 8, 0.3); margin-top: 10px;
+        }
+        .btn-pay:disabled { background: #334155; color: #64748b; box-shadow: none; cursor: not-allowed; }
+        
+        .btn-back { display: block; text-align: center; margin-top: 20px; color: #94a3b8; text-decoration: none; font-size: 13px; }
     </style>
 </head>
 <body>
 
     <div class="header">
-        <h2 style="font-size: 18px; margin: 0;">💳 Recharger un Appareil</h2>
-        <p style="font-size: 12px; color: #94a3b8;">Data / SMS de Tracing</p>
+        <h2 style="color: var(--primary); margin: 0;">Recharge Portefeuille</h2>
+        <p style="font-size: 13px; opacity: 0.7; margin-top: 5px;">Créditez votre compte pour activer vos requêtes</p>
     </div>
 
-    <!-- ÉTAPE 1 : Choix de la cible -->
-    <div class="step active" id="step1">
-        <div class="card">
-            <label>Sélectionnez le téléphone cible :</label>
-            <select id="select-cible">
-                <option value="0894161652">Cible 1 (0894161652)</option>
-                <option value="0820001122">Cible 2 (0820001122)</option>
-            </select>
-            <button class="btn-next" onclick="goToStep(2)">Continuer</button>
-        </div>
-    </div>
-
-    <!-- ÉTAPE 2 : Infos de paiement & Détection Réseau -->
-    <div class="step" id="step2">
-        <div class="card">
-            <label>Votre numéro d'envoi d'argent :</label>
-            <input type="tel" id="sender-num" placeholder="Ex: 097000..." oninput="detecterReseau(this.value)">
-            
-            <div id="network-status"></div>
-
-            <div class="info-paiement">
-                <small>Envoyez le montant au numéro suivant :</small><br>
-                <strong id="admin-num" style="font-size: 18px; color: var(--accent);">Veuillez saisir votre numéro</strong>
+    <div class="card">
+        <label>1. Saisissez le montant à recharger</label>
+        <input type="number" id="montant_recharge" placeholder="Ex: 5500" value="5500" min="1000">
+        
+        <label style="margin-top: 15px; display: block;">2. Sélectionnez votre réseau Mobile Money</label>
+        <div class="network-grid">
+            <div class="network-btn active" onclick="selectNetwork(this, 'Airtel Money')">
+                <span class="airtel">🔴 Airtel</span><br>Money
             </div>
-
-            <label>Code de transaction (SMS reçu) :</label>
-            <input type="text" id="transaction-code" placeholder="Entrez le code ID de la transaction">
-            
-            <button class="btn-next" onclick="finaliser()">LANCER LE PROCESSUS</button>
+            <div class="network-btn" onclick="selectNetwork(this, 'Orange Money')">
+                <span class="orange">🟠 Orange</span><br>Money
+            </div>
+            <div class="network-btn" onclick="selectNetwork(this, 'M-Pesa')">
+                <span class="vodacom">🟢 M-Pesa</span><br>Vodacom
+            </div>
         </div>
+
+        <label>3. Votre numéro de dépôt (Débit Mobile Money)</label>
+        <input type="tel" id="numero_depot" placeholder="Ex: 08..." required>
+
+        <button class="btn-pay" id="btn-submit-pay" onclick="traiterApprovisionnement()">VALIDER LE RECHARGEMENT</button>
     </div>
 
-    <!-- ÉTAPE 3 : Attente -->
-    <div class="step" id="step3">
-        <div class="card" style="text-align: center;">
-            <div style="font-size: 40px; margin-bottom: 20px;">⏳</div>
-            <h3>Demande envoyée !</h3>
-            <p style="font-size: 13px; color: #94a3b8;">L'administrateur confirme votre transfert sous 5 minutes. Votre solde sera pompé automatiquement.</p>
-            <button class="btn-next" style="background:#334155; color:white;" onclick="window.location.href='menu.html'">Retour au Menu</button>
-        </div>
-    </div>
+    <a href="menu.html" class="btn-back">← Retour au panneau de contrôle</a>
 
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
-        function goToStep(s) {
-            document.querySelectorAll('.step').forEach(step => step.classList.remove('active'));
-            document.getElementById('step' + s).classList.add('active');
-        }
+        // Configuration de tes clés d'accès Supabase globales
+        const SUPABASE_URL = "https://ufwirghypzowlmeqqgco.supabase.co";
+        const SUPABASE_KEY = "sb_publishable_ZMjol0IAFBrmaZULUzR7IA_Gk31Msqq";
+        
+        // CORRECTION DE LIAISON : Appel via le namespace supabasejs pour assurer la liaison avec le script CDN
+        const supabase = supabase.supabasejs.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        function detecterReseau(num) {
-            const status = document.getElementById('network-status');
-            const adminNumDisplay = document.getElementById('admin-num');
-            
-            if(num.startsWith('097') || num.startsWith('099')) {
-                status.innerHTML = '<span class="network-badge airtel">Réseau Détecté: AIRTEL</span>';
-                adminNumDisplay.innerText = "0971234567"; // Votre numéro Airtel Admin
-            } else if(num.startsWith('081') || num.startsWith('082')) {
-                status.innerHTML = '<span class="network-badge vodacom">Réseau Détecté: VODACOM</span>';
-                adminNumDisplay.innerText = "0819876543"; // Votre numéro Vodacom Admin
-            } else if(num.startsWith('089') || num.startsWith('084')) {
-                status.innerHTML = '<span class="network-badge orange">Réseau Détecté: ORANGE</span>';
-                adminNumDisplay.innerText = "0890000000"; // Votre numéro Orange Admin
-            } else {
-                status.innerHTML = '';
-                adminNumDisplay.innerText = "Numéro non reconnu";
+        let reseauSelectionne = "Airtel Money";
+        let userTel = localStorage.getItem('kt_user_tel');
+
+        window.onload = function() {
+            // Si l'utilisateur est connecté, on pré-remplit son numéro pour lui faire gagner du temps
+            if (userTel) {
+                document.getElementById('numero_depot').value = userTel;
             }
+        };
+
+        function selectNetwork(element, reseau) {
+            document.querySelectorAll('.network-btn').forEach(btn => btn.classList.remove('active'));
+            element.classList.add('active');
+            reseauSelectionne = reseau;
         }
 
-        function finaliser() {
-            const code = document.getElementById('transaction-code').value;
-            if(!code) { alert("Veuillez entrer le code de transaction."); return; }
-            
-            // Ici, vous envoyez une notification à admin.html via Firebase
-            alert("Alerte envoyée à l'administrateur.");
-            goToStep(3);
+        async function traiterApprovisionnement() {
+            const montantStr = document.getElementById('montant_recharge').value;
+            const numDepot = document.getElementById('numero_depot').value.trim();
+            const btn = document.getElementById('btn-submit-pay');
+
+            if (!montantStr || !numDepot) {
+                alert("Veuillez renseigner le montant et le numéro de dépôt.");
+                return;
+            }
+
+            const montantAajouter = parseInt(montantStr);
+            if (montantAajouter < 1000) {
+                alert("Le montant minimum de recharge est de 1 000 FC.");
+                return;
+            }
+
+            if (!userTel) {
+                alert("Erreur de session : Veuillez vous reconnecter.");
+                window.location.href = 'identification.html';
+                return;
+            }
+
+            btn.disabled = true;
+            btn.innerText = "⌛ INITIALISATION DU FLUX USSD...";
+
+            try {
+                // 1. Récupération du solde actuel stocké en base de données pour ce profil
+                const { data: profilData, error: fetchError } = await supabase
+                    .from('profils')
+                    .select('id, solde_fc')
+                    .eq('whatsapp_num', userTel)
+                    .limit(1)
+                    .single();
+
+                if (fetchError) throw fetchError;
+
+                if (profilData) {
+                    const soldeActuelBase = parseInt(profilData.solde_fc) || 0;
+                    const nouveauSoldeCalcule = soldeActuelBase + montantAajouter;
+
+                    // 2. Mise à jour réelle du crédit dans la table 'profils'
+                    const { error: updateError } = await supabase
+                        .from('profils')
+                        .update({ solde_fc: nouveauSoldeCalcule })
+                        .eq('id', profilData.id);
+
+                    if (updateError) throw updateError;
+
+                    // 3. Mise à jour du cache local de l'application
+                    localStorage.setItem('kt_solde_global', nouveauSoldeCalcule);
+
+                    // 4. Simulation visuelle de traitement d'API de paiement (Kinshasa Gateway)
+                    setTimeout(() => {
+                        alert(`Notification Kimia Track :\nDemande USSD envoyée vers votre mobile ${numDepot}.\n\nAprès validation de votre code PIN secret sur le prompt ${reseauSelectionne}, votre nouveau solde sera de ${nouveauSoldeCalcule.toLocaleString('fr-FR')} FC.`);
+                        
+                        // Redirection automatique vers le menu mis à jour
+                        window.location.href = "menu.html";
+                    }, 1500);
+
+                } else {
+                    alert("Compte introuvable. Veuillez vous réinscrire.");
+                    btn.disabled = false;
+                    btn.innerText = "VALIDER LE RECHARGEMENT";
+                }
+
+            } catch (err) {
+                console.error("Erreur passerelle recharge :", err.message);
+                alert("Impossible de joindre la passerelle de paiement mobile.");
+                btn.disabled = false;
+                btn.innerText = "VALIDER LE RECHARGEMENT";
+            }
         }
     </script>
 </body>
