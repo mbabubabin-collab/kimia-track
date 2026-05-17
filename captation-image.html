@@ -41,52 +41,82 @@
 
     <div class="section-title">Visualisation Satellite Actuelle</div>
     <div class="satellite-view">
-        <div class="sat-overlay">📡 LIVE SATELLITE - ZOOM 18x</div>
+        <div class="sat-overlay" id="satellite-status">📡 LIVE SATELLITE - ZOOM 18x</div>
     </div>
 
     <div class="report-section">
         <div class="section-title">Analyse des Déplacements (24h)</div>
         
-        <div class="timeline-item">
-            <div class="time">07:15</div>
-            <div class="activity">
-                <strong>Départ : Domicile</strong><br>
-                <span class="transport-tag">🚶 Marche</span>
-            </div>
-        </div>
-
-        <div class="timeline-item">
-            <div class="time">08:30</div>
-            <div class="activity">
-                <strong>Trajet : Boulevard Triomphal</strong><br>
-                <span class="transport-tag">🚌 Transport Commun (Bus)</span>
-            </div>
-        </div>
-
-        <div class="timeline-item">
-            <div class="time">12:45</div>
-            <div class="activity">
-                <strong>Espace côtoyé : Centre Commercial</strong><br>
-                <span class="transport-tag">📍 Stationnaire</span>
-            </div>
-        </div>
-
-        <div class="timeline-item">
-            <div class="time">17:20</div>
-            <div class="activity">
-                <strong>Retour en cours : Avenue Libération</strong><br>
-                <span class="transport-tag">🏍️ Moto-Taxi (Vitesse: 35km/h)</span>
-            </div>
+        <div id="report-timeline-container">
+            <div style="color: #94a3b8; font-style: italic; font-size: 13px;">Analyse du signal en cours...</div>
         </div>
     </div>
 
     <button class="btn-refresh" onclick="location.reload()">ACTUALISER LES DONNÉES IMAGE</button>
     <a href="menu.html" style="display:block; text-align:center; color:#94a3b8; font-size:12px; margin-top:15px; text-decoration:none;">Fermer le rapport</a>
 
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
+        // Configuration de tes clés d'accès Supabase globales
+        const SUPABASE_URL = "https://ufwirghypzowlmeqqgco.supabase.co";
+        const SUPABASE_KEY = "sb_publishable_ZMjol0IAFBrmaZULUzR7IA_Gk31Msqq";
+        
+        // CORRECTION DE LIAISON : Appel via le namespace supabasejs pour assurer la liaison avec le script CDN
+        const supabase = supabase.supabasejs.createClient(SUPABASE_URL, SUPABASE_KEY);
+
         const urlParams = new URLSearchParams(window.location.search);
         const tel = urlParams.get('tel');
-        if(tel) document.getElementById('display-num').innerText = tel;
+        
+        window.onload = function() {
+            if(tel) {
+                document.getElementById('display-num').innerText = tel;
+                chargerRapportDepuisSupabase(tel);
+            } else {
+                document.getElementById('satellite-status').innerText = "📡 ERREUR : AUCUN SIGNAL CIBLE";
+                document.getElementById('report-timeline-container').innerHTML = `<div style="color: #ef4444; font-size: 13px;">Aucun numéro spécifié dans l'URL.</div>`;
+            }
+        };
+
+        async function chargerRapportDepuisSupabase(numeroCible) {
+            try {
+                const { data, error } = await supabase
+                    .from('historique_parcours')
+                    .select('*')
+                    .eq('telephone_cible', numeroCible)
+                    .order('created_at', { ascending: false });
+
+                if (error) throw error;
+
+                const container = document.getElementById('report-timeline-container');
+
+                if (data && data.length > 0) {
+                    // Nettoyage de l'indicateur d'attente
+                    container.innerHTML = "";
+
+                    // Boucle de génération dynamique pour réinsérer tes boîtes d'habitudes d'origine
+                    data.forEach(point => {
+                        const dateObj = new Date(point.created_at);
+                        const heureFormatee = dateObj.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+
+                        const item = document.createElement('div');
+                        item.className = 'timeline-item';
+                        item.innerHTML = `
+                            <div class="time">${heureFormatee}</div>
+                            <div class="activity">
+                                <strong>${point.emplacement}</strong><br>
+                                <span class="transport-tag">${point.moyen_transport} ${point.details_vitesse ? `(${point.details_vitesse})` : ''}</span>
+                            </div>
+                        `;
+                        container.appendChild(item);
+                    });
+                } else {
+                    container.innerHTML = `<div style="color: #94a3b8; font-style: italic; font-size: 13px;">Aucune donnée d'habitude ou d'imagerie disponible pour ce numéro.</div>`;
+                }
+            } catch (err) {
+                console.error("Erreur de synchronisation imagerie :", err.message);
+                document.getElementById('report-timeline-container').innerHTML = `<div style="color: #ef4444; font-size: 13px;">Échec de synchronisation avec le relais.</div>`;
+            }
+        }
     </script>
 </body>
 </html>
