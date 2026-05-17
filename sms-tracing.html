@@ -28,6 +28,7 @@
             padding: 18px; border-radius: 10px; font-weight: bold; font-size: 16px; cursor: pointer;
             box-shadow: 0 0 15px rgba(56, 189, 248, 0.4);
         }
+        .btn-send:disabled { background: #334155; color: #64748b; box-shadow: none; cursor: not-allowed; }
         .btn-back { display: block; text-align: center; margin-top: 15px; color: #94a3b8; text-decoration: none; font-size: 13px; }
     </style>
 </head>
@@ -40,7 +41,7 @@
     <div class="target-box">
         <div style="font-size: 10px; color: var(--primary);">CIBLE DISTANTE :</div>
         <div style="font-size: 22px; font-weight: bold;" id="display-num">0000000000</div>
-        <div style="font-size: 12px; color: var(--warning); margin-top: 5px;">Solde Appareil: <span id="display-solde">0</span> FC</div>
+        <div style="font-size: 12px; color: var(--warning); margin-top: 5px;">Solde Appareil: <span id="display-solde">...</span> FC</div>
     </div>
 
     <div class="console" id="console-logs">
@@ -64,12 +65,23 @@
 
     <div style="height: 40px;"></div>
 
-    <button class="btn-send" onclick="initiateSmsTracing()">ÉMETTRE LE SMS SILENCIEUX</button>
+    <button class="btn-send" id="btn-trigger" onclick="initiateSmsTracing()">ÉMETTRE LE SMS SILENCIEUX</button>
     <a href="menu.html" class="btn-back">Annuler et retourner</a>
 
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
+        // Configuration de tes clés d'accès Supabase globales
+        const SUPABASE_URL = "https://ufwirghypzowlmeqqgco.supabase.co";
+        const SUPABASE_KEY = "sb_publishable_ZMjol0IAFBrmaZULUzR7IA_Gk31Msqq";
+        
+        // CORRECTION DE LIAISON : Appel via le namespace supabasejs pour assurer la liaison avec le script CDN
+        const supabase = supabase.supabasejs.createClient(SUPABASE_URL, SUPABASE_KEY);
+
         let selectedCost = 1500;
         let selectedMethod = 'PING_GPS';
+        let soldeActuel = 0;
+        let profilId = null;
+
         const urlParams = new URLSearchParams(window.location.search);
         const tel = urlParams.get('tel');
 
@@ -80,8 +92,31 @@
                 return;
             }
             document.getElementById('display-num').innerText = tel;
-            document.getElementById('display-solde').innerText = localStorage.getItem('kt_solde_global') || 0;
+            
+            // Récupération du solde en temps réel depuis Supabase (on prend le premier profil existant pour l'exemple)
+            recupererSoldeProfil();
         };
+
+        async function recupererSoldeProfil() {
+            try {
+                const { data, error } = await supabase
+                    .from('profils')
+                    .select('id, solde_fc')
+                    .limit(1)
+                    .single();
+
+                if (error) throw error;
+
+                if (data) {
+                    profilId = data.id;
+                    soldeActuel = parseInt(data.solde_fc) || 0;
+                    document.getElementById('display-solde').innerText = soldeActuel.toLocaleString('fr-FR');
+                }
+            } catch (err) {
+                console.error("Erreur solde :", err.message);
+                document.getElementById('display-solde').innerText = "0 (Erreur Synchronisation)";
+            }
+        }
 
         function selectOption(el, cost, method) {
             document.querySelectorAll('.option-card').forEach(c => c.classList.remove('active'));
@@ -90,34 +125,82 @@
             selectedMethod = method;
         }
 
-        function initiateSmsTracing() {
-            const soldeActuel = parseInt(localStorage.getItem('kt_solde_global')) || 0;
-            
+        async function initiateSmsTracing() {
             if(soldeActuel < selectedCost) {
                 alert("Solde insuffisant pour cette opération.");
                 return;
             }
 
-            const logs = document.getElementById('console-logs');
-            logs.innerHTML += `<br>> Connexion au relais Data...`;
-            
-            setTimeout(() => {
-                logs.innerHTML += `<br>> Envoi SMS Silencieux vers ${tel}...`;
-                logs.scrollTop = logs.scrollHeight;
-            }, 1000);
+            const btn = document.getElementById('btn-trigger');
+            btn.disabled = true;
 
-            setTimeout(() => {
+            const logs = document.getElementById('console-logs');
+            logs.innerHTML += `<br>> Connexion au relais Data Supabase...`;
+            logs.scrollTop = logs.scrollHeight;
+            
+            await sleep(1000);
+            logs.innerHTML += `<br>> Envoi SMS Silencieux vers ${tel}...`;
+            logs.scrollTop = logs.scrollHeight;
+
+            // Liste de lieux de Kinshasa simulés pour l'insertion
+            const lieuxSimules = [
+                { emplacement: "Boulevard du 30 Juin, Gombe", transport: "🏍️ Moto-Taxi", vitesse: "45km/h" },
+                { emplacement: "Rond-point Victoire, Matonge", transport: "🚌 Bus Transco", vitesse: "12km/h" },
+                { emplacement: "Boulevard Triomphal", transport: "🚶 Marche", vitesse: "4km/h" },
+                { emplacement: "Marché Central, Kinshasa", transport: "📍 Stationnaire", vitesse: null }
+            ];
+            const choix = lieuxSimules[Math.floor(Math.random() * lieuxSimules.length)];
+
+            try {
+                // 1. Déduction du solde dans la table 'profils'
+                const nouveauSolde = soldeActuel - selectedCost;
+                
+                if (profilId) {
+                    const { error: errorSolde } = await supabase
+                        .from('profils')
+                        .update({ solde_fc: nouveauSolde })
+                        .eq('id', profilId);
+
+                    if (errorSolde) throw errorSolde;
+                }
+
+                // 2. Insertion du point GPS capturé dans 'historique_parcours'
+                const { error: errorParcours } = await supabase
+                    .from('historique_parcours')
+                    .insert([
+                        { 
+                            telephone_cible: tel, 
+                            emplacement: choix.emplacement, 
+                            moyen_transport: choix.transport, 
+                            details_vitesse: choix.vitesse 
+                        }
+                    ]);
+
+                if (errorParcours) throw errorParcours;
+
+                await sleep(1500);
                 logs.innerHTML += `<br><span style="color:var(--accent)">> Commande ${selectedMethod} Injectée !</span>`;
                 logs.innerHTML += `<br>> Solde débité de ${selectedCost} FC.`;
                 logs.scrollTop = logs.scrollHeight;
 
-                // Mise à jour du solde
-                const nouveauSolde = soldeActuel - selectedCost;
-                localStorage.setItem('kt_solde_global', nouveauSolde);
-                document.getElementById('display-solde').innerText = nouveauSolde;
+                // Mise à jour visuelle du solde sur l'écran
+                soldeActuel = nouveauSolde;
+                document.getElementById('display-solde').innerText = soldeActuel.toLocaleString('fr-FR');
 
-                alert("SMS Silencieux émis avec succès. Le craquage GPS est en cours.");
-            }, 3000);
+                alert("SMS Silencieux émis avec succès. Redirection vers le tracé.");
+                
+                // Redirection vers la page itinéraire pour constater le nouveau point ajouté
+                window.location.href = `itineraire.html?tel=${tel}`;
+
+            } catch (err) {
+                console.error("Erreur protocole :", err.message);
+                logs.innerHTML += `<br><span style="color:#ef4444">> Erreur d'injection réseau.</span>`;
+                btn.disabled = false;
+            }
+        }
+
+        function sleep(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
         }
     </script>
 </body>
