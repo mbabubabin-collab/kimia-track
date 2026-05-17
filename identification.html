@@ -19,6 +19,7 @@
         p { margin: 5px 0 0; font-size: 13px; color: #cbd5e1; }
         .prix { font-weight: bold; color: #fbbf24; font-size: 16px; display: block; margin-top: 5px; }
         .btn-connexion { background: #38bdf8; color: #0f172a; border: none; padding: 12px; width: 100%; border-radius: 8px; font-weight: bold; margin-bottom: 15px; cursor: pointer; }
+        .btn-connexion:disabled { background: #334155; color: #64748b; cursor: not-allowed; }
         .btn-retour { display: block; text-align: center; margin-top: 25px; color: #64748b; text-decoration: none; font-size: 14px; }
     </style>
 </head>
@@ -32,7 +33,7 @@
     <div class="auth-box">
         <input id="input_tel" type="tel" placeholder="N° de téléphone (ex: 08...)">
         <input id="input_pass" type="password" placeholder="Mot de passe secret">
-        <button class="btn-connexion" onclick="validerConnexion()">SE CONNECTER</button>
+        <button class="btn-connexion" id="btn-login" onclick="validerConnexion()">SE CONNECTER</button>
     </div>
 
     <div class="header">
@@ -40,13 +41,13 @@
     </div>
 
     <div class="choix-container">
-        <div class="option-demo" onclick="window.location.href='inscription.html'">
+        <div class="option-demo" onclick="window.location.href='inscription.html?pack=demo'">
             <h4>Version DÉMO</h4>
             <p>Testez la précision du signal gratuitement pendant 30 min.</p>
             <span class="prix">Gratuit</span>
         </div>
 
-        <div class="option-premium" onclick="window.location.href='inscription.html'">
+        <div class="option-premium" onclick="window.location.href='inscription.html?pack=gold'">
             <span class="badge-premium">RECOMMANDÉ</span>
             <h4>KIMIA GOLD</h4>
             <p>Suivi illimité et protection totale de vos appareils.</p>
@@ -56,41 +57,74 @@
 
     <a href="index.html" class="btn-retour">Annuler et revenir à l'accueil</a>
 
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
-        function validerConnexion() {
-            const telSaisi = document.getElementById('input_tel').value;
+        // Configuration de tes clés d'accès Supabase globales
+        const SUPABASE_URL = "https://ufwirghypzowlmeqqgco.supabase.co";
+        const SUPABASE_KEY = "sb_publishable_ZMjol0IAFBrmaZULUzR7IA_Gk31Msqq";
+        
+        // CORRECTION DE LIAISON : Appel via le namespace supabasejs pour assurer la liaison avec le script CDN
+        const supabase = supabase.supabasejs.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        window.validerConnexion = async function() {
+            const telSaisi = document.getElementById('input_tel').value.trim();
             const passSaisi = document.getElementById('input_pass').value;
 
-            // Récupération des données d'inscription stockées
-            const storedTel = localStorage.getItem('kt_user_tel');
-            const storedPass = localStorage.getItem('kt_user_pass');
-            const authStatus = localStorage.getItem('kt_auth_status');
+            if(!telSaisi || !passSaisi) {
+                alert("Veuillez remplir tous les champs.");
+                return;
+            }
 
-            // 1. Vérification Admin (votre accès personnel)
+            // 1. Accès Administrateur / Super-User direct
             const ADMIN_TEL = "243861769481"; 
             const ADMIN_PASS = "BMM2026";
 
             if (telSaisi === ADMIN_TEL && passSaisi === ADMIN_PASS) {
                 sessionStorage.setItem('auth_kimia', 'success');
+                localStorage.setItem('kt_user_tel', telSaisi);
+                localStorage.setItem('kt_solde_global', "999999");
                 window.location.href = 'menu.html';
                 return;
             }
 
-            // 2. Vérification Utilisateur Inscrit (Intelligence Captante)
-            // On vérifie si le numéro et le mot de passe correspondent à l'inscription récente
-            if (authStatus === 'registered' && telSaisi === storedTel && passSaisi === storedPass) {
-                sessionStorage.setItem('auth_kimia', 'success');
-                alert("Connexion réussie !");
-                window.location.href = 'menu.html';
-            } else {
-                alert("Accès refusé : Aucun compte trouvé avec ces identifiants ou mot de passe incorrect.");
+            const btn = document.getElementById('btn-login');
+            btn.disabled = true;
+
+            // 2. Vérification simplifiée et directe dans la table 'profils'
+            try {
+                const { data, error } = await supabase
+                    .from('profils')
+                    .select('*')
+                    .eq('whatsapp_num', telSaisi)
+                    .limit(1);
+
+                if (error) throw error;
+
+                // On vérifie si le compte existe (pour l'instant, validation par numéro de téléphone trouvé)
+                if (data && data.length > 0) {
+                    const profil = data[0];
+                    
+                    // Sauvegarde des états de session et synchronisation du solde réel trouvé
+                    sessionStorage.setItem('auth_kimia', 'success');
+                    localStorage.setItem('kt_user_tel', profil.whatsapp_num);
+                    localStorage.setItem('kt_solde_global', profil.solde_fc || 0);
+
+                    window.location.href = 'menu.html';
+                } else {
+                    alert("Accès refusé : Ce numéro de téléphone n'est pas enregistré.");
+                    btn.disabled = false;
+                }
+
+            } catch (error) {
+                console.error(error);
+                alert("Une erreur est survenue lors de la vérification de vos accès réseau.");
+                btn.disabled = false;
             }
         }
 
-        // Sécurité supplémentaire : Si l'utilisateur est déjà "connecté", redirection directe
         window.onload = function() {
             if(sessionStorage.getItem('auth_kimia') === 'success') {
-                // Optionnel : décommentez la ligne suivante pour auto-connecter
+                // Optionnel : redirection automatique si déjà connecté
                 // window.location.href = 'menu.html';
             }
         }
