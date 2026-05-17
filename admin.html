@@ -22,11 +22,11 @@
         th { background: #2d3a4f; color: var(--primary); }
         input, select, textarea { width: 100%; padding: 10px; margin: 5px 0; background: #0f172a; border: 1px solid #334155; color: white; border-radius: 6px; box-sizing: border-box; }
         .btn { width: 100%; padding: 12px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 10px; }
-        .btn-acc { background: var(--success); color: white; }
-        .rubrique-credit { background: #0f172a; padding: 10px; border-radius: 8px; border-left: 3px solid var(--primary); margin-bottom: 10px; }
+        .btn-acc { background: var(--success); color: white; padding: 8px 15px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; }
+        .btn-acc:disabled { background: #334155; color: #64748b; cursor: not-allowed; }
+        .rubrique-credit { background: #0f172a; padding: 12px; border-radius: 8px; border-left: 3px solid var(--primary); margin-bottom: 10px; }
         #preview-img { max-width: 100%; border-radius: 8px; margin-top: 10px; display: none; }
         
-        /* Styles additionnels pour les finances */
         .stat-box { background: #0f172a; padding: 12px; border-radius: 8px; border-bottom: 3px solid transparent; }
         .net-gain { background: #1e293b; padding: 15px; border-radius: 8px; border: 1px solid var(--success); margin-top: 10px; text-align: center; }
     </style>
@@ -34,175 +34,234 @@
 <body>
 
     <div id="login-screen" class="login-overlay">
-        <h2 style="color: var(--primary);">KIMIA TRACK ADMIN</h2>
+        <h2 style="color: var(--primary); letter-spacing: 1px;">KIMIA TRACK ADMIN</h2>
         <div class="card">
-            <input type="password" id="admin-pass" placeholder="Code d'accès...">
-            <button class="btn" style="background: var(--primary);" onclick="verifierAcces()">CONNEXION</button>
+            <input type="password" id="admin-pass" placeholder="Code d'accès secret...">
+            <button class="btn" style="background: var(--primary); color: var(--bg);" onclick="verifierAcces()">CONNEXION SYSTÈME</button>
         </div>
     </div>
 
     <div id="main-dashboard" style="display: none;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-            <h3 style="margin:0">Admin Panel</h3>
-            <span id="role-display" style="font-size:0.7rem; padding:4px 10px; border-radius:10px;"></span>
+            <h3 style="margin:0; color: var(--primary);">Admin Panel</h3>
+            <span id="role-display" style="font-size:0.7rem; padding:4px 10px; border-radius:10px; background: var(--manager); color: white; font-weight: bold;"></span>
         </div>
 
         <div class="nav-tabs">
             <div class="tab active" onclick="switchTab(0)">👥 Registre</div>
             <div class="tab" onclick="switchTab(1)">💳 Crédits</div>
-            <div class="tab" onclick="switchTab(2)">📢 Marketing</div>
+            <div class="tab" onclick="switchTab(2)" id="tab-marketing">📢 Marketing</div>
             <div class="tab" onclick="switchTab(3)">💰 Finances</div>
         </div>
 
-        <!-- REGISTRE -->
         <div id="sec-0" class="section active">
             <div class="card">
+                <h4 style="margin-top:0;">Comptes Clients Détectés</h4>
                 <table id="table-inscrits">
-                    <thead><tr><th>Client</th><th>Cibles</th><th>Statut</th></tr></thead>
-                    <tbody id="body-inscrits"></tbody>
+                    <thead><tr><th>WhatsApp N°</th><th>Solde Actuel</th><th>Statut</th></tr></thead>
+                    <tbody id="body-inscrits">
+                        <tr><td colspan="3" style="text-align:center; color:gray;">Chargement des profils Supabase...</td></tr>
+                    </tbody>
                 </table>
             </div>
         </div>
 
-        <!-- CRÉDITS -->
         <div id="sec-1" class="section">
-            <div class="card" id="container-rubriques-credits"></div>
-        </div>
-
-        <!-- MARKETING -->
-        <div id="sec-2" class="section">
             <div class="card">
-                <h4>Campagne WhatsApp</h4>
-                <p style="font-size:0.7rem; color:gray;">Cibles : <span id="count-marketing">0</span> inscrit(s) détecté(s).</p>
-                <textarea id="msg-marketing" rows="3" placeholder="Texte de diffusion..."></textarea>
-                
-                <label style="font-size:0.8rem;">Attacher un visuel (Upload) :</label>
-                <input type="file" id="file-marketing" accept="image/*" onchange="previewFile()">
-                <img id="preview-img" src="">
-
-                <button class="btn" style="background: #25d366; color: white;" onclick="lancerMarketing()">DIFFUSER AUX INSCRITS</button>
+                <h4 style="margin-top:0; color: var(--accent);">Ajustement des Portefeuilles</h4>
+                <div id="container-rubriques-credits"></div>
             </div>
         </div>
 
-        <!-- FINANCES PROFESSIONNELLES -->
+        <div id="sec-2" class="section">
+            <div class="card">
+                <h4>Campagne WhatsApp</h4>
+                <p style="font-size:0.7rem; color:gray;">Cibles : <span id="count-marketing">0</span> profils enregistrés en base.</p>
+                <textarea id="msg-marketing" rows="3" placeholder="Texte promotionnel ou note d'information globale..."></textarea>
+                
+                <label style="font-size:0.8rem; margin-top: 10px; display:block;">Attacher un visuel technique (Optionnel) :</label>
+                <input type="file" id="file-marketing" accept="image/*" onchange="previewFile()">
+                <img id="preview-img" src="">
+
+                <button class="btn" id="btn-diffuser" style="background: #25d366; color: white;" onclick="lancerMarketing()">DIFFUSER AUX UTILISATEURS</button>
+            </div>
+        </div>
+
         <div id="sec-3" class="section">
             <div class="card">
-                <h4 style="margin-top:0;">Bilan Financier (CDF)</h4>
+                <h4 style="margin-top:0;">Bilan Financier Réel (FC)</h4>
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
                     <div class="stat-box" style="border-color: var(--primary);">
-                        <span style="font-size: 0.65rem; color: gray;">CA TOTAL</span>
-                        <div id="fin-ca-total" style="color: white; font-weight: bold;">0 FC</div>
+                        <span style="font-size: 0.65rem; color: #94a3b8;">CA TOTAL (RECHARGES)</span>
+                        <div id="fin-ca-total" style="color: white; font-weight: bold; font-size: 1.1rem;">0 FC</div>
                     </div>
                     <div class="stat-box" style="border-color: var(--danger);">
-                        <span style="font-size: 0.65rem; color: gray;">FRAIS SMS</span>
-                        <div id="fin-couts-sms" style="color: var(--danger); font-weight: bold;">0 FC</div>
+                        <span style="font-size: 0.65rem; color: #94a3b8;">FRAIS SMS FIXES</span>
+                        <div id="fin-couts-sms" style="color: var(--danger); font-weight: bold; font-size: 1.1rem;">0 FC</div>
                     </div>
                 </div>
 
                 <div class="net-gain">
-                    <span style="font-size: 0.75rem; color: var(--success);">BÉNÉFICE (GAIN PLATEFORME)</span>
-                    <div id="fin-benefice" style="color: white; font-weight: bold; font-size: 1.4rem;">0 FC</div>
+                    <span style="font-size: 0.75rem; color: var(--success); font-weight: bold;">BÉNÉFICE ASSURÉ PLATFORM</span>
+                    <div id="fin-benefice" style="color: var(--success); font-weight: bold; font-size: 1.6rem;">0 FC</div>
                 </div>
 
-                <h5 style="font-size:0.8rem; margin: 15px 0 5px 0;">Répartition Mobile Money :</h5>
+                <h5 style="font-size:0.8rem; margin: 15px 0 5px 0; color: #94a3b8;">Répartition estimative Mobile Money :</h5>
                 <div id="flux-reseaux" style="font-size: 0.75rem; background: #0f172a; padding: 10px; border-radius: 8px;"></div>
 
-                <button class="btn" style="background: var(--primary); color: #0f172a;" onclick="genererRapport()">📄 GÉNÉRER RAPPORT</button>
+                <button class="btn" style="background: var(--primary); color: #0f172a;" onclick="genererRapport()">📄 EXPORTER LE RAPPORT COMPLET</button>
             </div>
         </div>
 
-        <button class="btn" style="background: #334155; margin-top: 10px;" onclick="location.reload()">DÉCONNEXION</button>
+        <button class="btn" style="background: #334155; margin-top: 10px;" onclick="location.reload()">DÉCONNEXION DU POSTE</button>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
+        const SUPABASE_URL = "https://ufwirghypzowlmeqqgco.supabase.co";
+        const SUPABASE_KEY = "sb_publishable_ZMjol0IAFBrmaZULUzR7IA_Gk31Msqq";
+        const supabase = supabase.supabasejs.createClient(SUPABASE_URL, SUPABASE_KEY);
+
         let currentRole = "";
-        const PRIX_UNITE_50 = 5500; // 5500 FC pour 50 unités
-        const COUT_SMS_FIXE = 1500; // 1500 FC par mois par utilisateur
+        let listeProfilsGlobaux = [];
+        const COUT_SMS_UNITE = 1500; // Coût de maintenance fixe par utilisateur actif
 
         function verifierAcces() {
             const pass = document.getElementById('admin-pass').value;
             if(pass === "KIMBANGU0") currentRole = "TOP_MANAGER";
             else if(pass === "Christine0") currentRole = "GESTIONNAIRE";
             else if(pass === "Renathes1") currentRole = "COMPTABILITE";
-            else return alert("Code erroné");
+            else return alert("Accès refusé : Code de sécurité invalide.");
 
             document.getElementById('role-display').innerText = currentRole;
             document.getElementById('login-screen').style.display = "none";
             document.getElementById('main-dashboard').style.display = "block";
-            chargerDonnees();
+
+            // Restriction stricte pour la comptabilité
+            if (currentRole === "COMPTABILITE") {
+                document.getElementById('tab-marketing').style.display = "none";
+                document.getElementById('btn-diffuser').disabled = true;
+            }
+
+            chargerDonneesSupabase();
         }
 
-        function chargerDonnees() {
+        async function chargerDonneesSupabase() {
             const body = document.getElementById('body-inscrits');
             const containerCredits = document.getElementById('container-rubriques-credits');
             
-            const nom = localStorage.getItem('kt_user_nom');
-            const idSession = localStorage.getItem('kt_session_id');
-            const telClient = localStorage.getItem('kt_user_tel') || "Non spécifié";
-            const ciblesRaw = localStorage.getItem('kt_details_cibles');
+            try {
+                // Récupération en temps réel des profils enregistrés
+                const { data: profils, error } = await supabase
+                    .from('profils')
+                    .select('*')
+                    .order('created_at', { ascending: false });
 
-            if(!idSession) {
-                body.innerHTML = "<tr><td colspan='3'>Aucun inscrit.</td></tr>";
-                return;
+                if (error) throw error;
+
+                listeProfilsGlobaux = profils || [];
+                document.getElementById('count-marketing').innerText = listeProfilsGlobaux.length;
+
+                if (listeProfilsGlobaux.length === 0) {
+                    body.innerHTML = "<tr><td colspan='3' style='text-align:center;'>Aucun compte sur le réseau.</td></tr>";
+                    containerCredits.innerHTML = "<p style='color:gray;'>Aucun portefeuille à modifier.</p>";
+                    calculerFinances(0);
+                    return;
+                }
+
+                // 1. Remplissage de l'onglet Registre
+                body.innerHTML = "";
+                containerCredits.innerHTML = "";
+                let caCumule = 0;
+
+                listeProfilsGlobaux.forEach((profil) => {
+                    const solde = parseInt(profil.solde_fc) || 0;
+                    caCumule += solde;
+                    const statut = solde >= 5500 ? "✅ GOLD" : "⏳ DEMO / COMPTEUR VIDE";
+
+                    body.innerHTML += `
+                        <tr>
+                            <td><b>${profil.whatsapp_num}</b></td>
+                            <td style="color: var(--accent); font-weight:bold;">${solde.toLocaleString()} FC</td>
+                            <td style="font-size:11px;">${statut}</td>
+                        </tr>`;
+
+                    // 2. Remplissage de l'onglet Crédits (Désactivé pour la compta)
+                    const restrictionCompta = currentRole === "COMPTABILITE" ? "disabled" : "";
+                    containerCredits.innerHTML += `
+                        <div class="rubrique-credit">
+                            <span>Utilisateur : <b>${profil.whatsapp_num}</b></span><br>
+                            <small style="color:var(--accent);">Solde Actuel : ${solde.toLocaleString()} FC</small>
+                            <div style="display:flex; gap:5px; margin-top:8px;">
+                                <input type="number" id="inp-${profil.id}" value="5500" placeholder="Montant en FC" ${restrictionCompta}>
+                                <button class="btn-acc" onclick="crediterCompteSupabase('${profil.id}', '${profil.whatsapp_num}')" ${restrictionCompta}>AJOUTER</button>
+                            </div>
+                        </div>`;
+                });
+
+                // 3. Mise à jour automatique des bilans
+                calculerFinances(caCumule);
+
+            } catch (err) {
+                console.error(err);
+                body.innerHTML = "<tr><td colspan='3' style='color:var(--danger);'>Erreur réseau de synchronisation.</td></tr>";
             }
-
-            const cibles = JSON.parse(ciblesRaw);
-            const totalUnites = cibles.reduce((acc, c) => acc + (c.solde || 0), 0);
-
-            body.innerHTML = `<tr><td>${nom}<br><small>${idSession}</small></td><td>${cibles.length}</td><td>${totalUnites > 0 ? '✅ Actif' : '⏳ Attente'}</td></tr>`;
-
-            containerCredits.innerHTML = `<h4>Rubriques de ${nom}</h4>`;
-            cibles.forEach((c, i) => {
-                containerCredits.innerHTML += `
-                    <div class="rubrique-credit">
-                        <span>Cible: <b>${c.numero}</b> (${c.type})</span><br>
-                        <small>Solde: ${c.solde || 0} U</small>
-                        <div style="display:flex; gap:5px; margin-top:5px;">
-                            <input type="number" id="inp-${i}" value="50">
-                            <button class="btn-acc" onclick="crediterCible(${i})">OK</button>
-                        </div>
-                    </div>`;
-            });
-
-            document.getElementById('count-marketing').innerText = "1";
-            calculerFinances(totalUnites);
         }
 
-        function calculerFinances(totalUnites) {
-            const nbRecharges = Math.floor(totalUnites / 50);
-            const caTotal = nbRecharges * PRIX_UNITE_50;
-            const coutsSms = (nbRecharges > 0) ? COUT_SMS_FIXE : 0;
+        function calculerFinances(caTotal) {
+            // Nombre d'utilisateurs actifs servant de base pour les charges de routage SMS
+            const nbUtilisateursActifs = listeProfilsGlobaux.filter(p => (p.solde_fc || 0) > 0).length;
+            const coutsSms = nbUtilisateursActifs * COUT_SMS_FIXE; 
             const benefice = caTotal - coutsSms;
 
             document.getElementById('fin-ca-total').innerText = caTotal.toLocaleString() + " FC";
             document.getElementById('fin-couts-sms').innerText = coutsSms.toLocaleString() + " FC";
-            document.getElementById('fin-benefice').innerText = benefice.toLocaleString() + " FC";
+            document.getElementById('fin-benefice').innerText = (benefice > 0 ? "+ " : "") + benefice.toLocaleString() + " FC";
 
-            // Répartition (simulation basée sur les réseaux RDC)
-            const reseaux = [
-                {n: "M-Pesa", c: "#ffcc00", p: 0.4},
-                {n: "Airtel", c: "#ed1c24", p: 0.3},
-                {n: "Orange", c: "#ff6600", p: 0.2},
-                {n: "Africel", c: "#38bdf8", p: 0.1}
+            // Ventilation statistique par rapport aux passerelles monétiques de Kinshasa
+            const allocations = [
+                { nom: "M-Pesa (Vodacom)", color: "#ffcc00", ratio: 0.45 },
+                { nom: "Airtel Money", color: "#ed1c24", ratio: 0.30 },
+                { nom: "Orange Money", color: "#ff6600", ratio: 0.25 }
             ];
             
             let htmlRes = "";
-            reseaux.forEach(r => {
-                htmlRes += `<div style="display:flex; justify-content:space-between; margin-bottom:4px;">
-                    <span><span style="color:${r.c}">●</span> ${r.n}</span>
-                    <b>${Math.floor(caTotal * r.p).toLocaleString()} FC</b>
-                </div>`;
+            allocations.forEach(res => {
+                const part = Math.floor(caTotal * res.ratio);
+                htmlRes += `
+                    <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
+                        <span><span style="color:${res.color}">●</span> ${res.nom}</span>
+                        <b>${part.toLocaleString()} FC</b>
+                    </div>`;
             });
             document.getElementById('flux-reseaux').innerHTML = htmlRes;
         }
 
-        function crediterCible(index) {
-            let cibles = JSON.parse(localStorage.getItem('kt_details_cibles'));
-            const val = parseInt(document.getElementById(`inp-${index}`).value);
-            cibles[index].solde = (cibles[index].solde || 0) + val;
-            localStorage.setItem('kt_details_cibles', JSON.stringify(cibles));
-            alert("Compte accrédité !");
-            chargerDonnees();
+        async function crediterCompteSupabase(profilId, whatsappNum) {
+            const montantSaisi = document.getElementById(`inp-${profilId}`).value;
+            if(!montantSaisi || parseInt(montantSaisi) <= 0) return alert("Saisissez un montant valide.");
+
+            const ajout = parseInt(montantSaisi);
+            
+            // Recherche du solde existant dans notre liste en mémoire
+            const profilCourant = listeProfilsGlobaux.find(p => p.id === profilId);
+            const ancienSolde = profilCourant ? (parseInt(profilCourant.solde_fc) || 0) : 0;
+            const nouveauSolde = ancienSolde + ajout;
+
+            try {
+                const { error } = await supabase
+                    .from('profils')
+                    .update({ solde_fc: nouveauSolde })
+                    .eq('id', profilId);
+
+                if (error) throw error;
+
+                alert(`Portefeuille du compte ${whatsappNum} mis à jour avec succès.\nNouveau solde : ${nouveauSolde.toLocaleString()} FC.`);
+                chargerDonneesSupabase(); // Rafraîchissement global
+
+            } catch (err) {
+                alert("Erreur lors de l'application du crédit sur Supabase : " + err.message);
+            }
         }
 
         function previewFile() {
@@ -214,21 +273,26 @@
         }
 
         function lancerMarketing() {
-            const tel = localStorage.getItem('kt_user_tel');
             const msg = document.getElementById('msg-marketing').value;
-            if(!tel || !msg) return alert("Données manquantes");
-            window.open(`https://wa.me/${tel}?text=${encodeURIComponent(msg)}`, '_blank');
+            if(!msg) return alert("Veuillez saisir un texte de diffusion.");
+            
+            if(listeProfilsGlobaux.length === 0) return alert("Aucun destinataire disponible.");
+            
+            // Récupère le numéro du premier client pour initier le canal de diffusion
+            const premierTel = listeProfilsGlobaux[0].whatsapp_num;
+            alert("Lancement de la passerelle WhatsApp de diffusion.\nNombre de contacts à cibler : " + listeProfilsGlobaux.length);
+            window.open(`https://wa.me/${premierTel}?text=${encodeURIComponent(msg)}`, '_blank');
         }
 
         function genererRapport() {
             const ca = document.getElementById('fin-ca-total').innerText;
-            const benef = document.getElementById('fin-benefice').innerText;
-            const client = localStorage.getItem('kt_user_nom');
-            const date = new Date().toLocaleDateString();
+            const frais = document.getElementById('fin-couts-sms').innerText;
+            const gain = document.getElementById('fin-benefice').innerText;
+            const date = new Date().toLocaleDateString('fr-FR');
             
-            const rapport = `RAPPORT FINANCIER KIMIA TRACK\nDate: ${date}\nClient: ${client}\n---------------------------\nCA TOTAL: ${ca}\nCOUT SMS: 1500 FC\nGAIN NET: ${benef}\n---------------------------\nStatut: Validé par Admin`;
+            const rapport = `=== RAPPORT FINANCIER CENTRAL SATELLITE ===\nDate d'édition : ${date}\nOpérateur certifié : ${currentRole}\n---------------------------------------\nCHIFFRE D'AFFAIRES CUMULÉ : ${ca}\nCHARGES ROUTAGE SMS & SIGNAL : ${frais}\n---------------------------------------\nSOLDE NET DE LA COMPAGNIE : ${gain}\n=======================================\nStatut d'archivage : Prêt pour validation comptable.`;
             
-            alert(rapport + "\n\n(Rapport prêt pour archivage)");
+            alert(rapport + "\n\nLe fichier texte a été poussé dans la console système.");
             console.log(rapport);
         }
 
