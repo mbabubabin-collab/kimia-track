@@ -3,14 +3,148 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="google-site-verification" content="f4a1e9479b908709" />
-    <title>Kimia Track | Service Officiel</title>
+    <title>Kimia Track | Protection & Intelligence</title>
+    <style>
+        :root { 
+            --primary: #38bdf8; --bg: #0f172a; --card: #1e293b; --text: #f1f5f9; 
+            --accent: #eab308; --success: #22c55e;
+        }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 0; line-height: 1.6; }
+        
+        /* Hero & Header */
+        .hero { background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%); padding: 40px 20px; text-align: center; border-bottom: 2px solid var(--primary); }
+        .hero h1 { font-size: 2rem; color: var(--primary); margin: 0; letter-spacing: 2px; text-transform: uppercase; }
+        .hero p { opacity: 0.8; font-size: 0.9rem; margin-top: 10px; font-weight: 300; }
+
+        .container { max-width: 500px; margin: auto; padding: 20px; }
+
+        /* Section Avantages */
+        .section-title { color: var(--accent); border-left: 4px solid var(--accent); padding-left: 12px; margin: 30px 0 20px; font-size: 1.1rem; font-weight: bold; }
+        
+        .benefit-card { background: var(--card); border-radius: 12px; padding: 20px; margin-bottom: 15px; border: 1px solid #334155; }
+        .benefit-header { display: flex; align-items: center; gap: 15px; margin-bottom: 8px; }
+        .icon { font-size: 1.4rem; color: var(--primary); }
+        .benefit-card h3 { margin: 0; font-size: 1rem; color: #fff; }
+        .benefit-card p { margin: 0; font-size: 0.85rem; color: #94a3b8; }
+
+        /* Section Forfaits */
+        .pricing-container { display: flex; gap: 10px; margin-bottom: 20px; }
+        .price-card { 
+            flex: 1; background: rgba(15, 23, 42, 0.5); border: 1px solid #334155; 
+            border-radius: 12px; padding: 15px; text-align: center;
+            text-decoration: none; color: inherit; display: block; transition: 0.3s;
+        }
+        .price-card:hover { transform: translateY(-3px); border-color: var(--primary); }
+        .price-card.gold { border: 2px solid var(--accent); }
+        .price-card h4 { margin: 0; font-size: 0.8rem; color: var(--primary); text-transform: uppercase; }
+        .price-card.gold h4 { color: var(--accent); }
+        .price-val { font-size: 1.2rem; font-weight: bold; display: block; margin: 5px 0; }
+        .price-info { font-size: 0.65rem; color: #94a3b8; display: block; line-height: 1.2; }
+
+        /* Bouton d'action vers Inscription */
+        .cta-container { margin-top: 40px; text-align: center; }
+        .btn-access { 
+            display: inline-block; width: 100%; padding: 18px; 
+            background: var(--primary); color: var(--bg); 
+            text-decoration: none; border-radius: 12px; 
+            font-weight: 900; text-transform: uppercase; 
+            letter-spacing: 1px; transition: 0.3s;
+            box-shadow: 0 4px 15px rgba(56, 189, 248, 0.4);
+        }
+        .btn-access:hover { transform: translateY(-3px); background: #fff; }
+
+        /* Touche d'identification */
+        .login-link { 
+            display: block; margin-top: 20px; color: var(--primary); 
+            text-decoration: none; font-size: 0.85rem; font-weight: bold;
+        }
+        .login-link span { color: #94a3b8; font-weight: normal; }
+
+        .footer-note { text-align: center; font-size: 0.7rem; color: #64748b; margin-top: 40px; padding-bottom: 20px; }
+    </style>
 </head>
-<body style="font-family:sans-serif; text-align:center; padding-top:100px; background-color:#f9f9f9;">
-    <h1 style="color:#2c3e50;">Kimia Track</h1>
-    <p>Validation du système en cours...</p>
-    <div style="margin-top:30px;">
-        <a href="identification.html" style="padding:10px 20px; background:#007bff; color:white; text-decoration:none; border-radius:5px;">Accéder à l'application</a>
+<body>
+
+    <div class="hero">
+        <h1>KIMIA TRACK</h1>
+        <p>Intelligence Géospatiale & Protection Civile</p>
     </div>
+
+    <div class="container">
+        
+        <div class="section-title">VOTRE SÉCURITÉ, NOTRE PRIORITÉ</div>
+
+        <div class="benefit-card">
+            <div class="benefit-header">
+                <span class="icon">🏍️</span>
+                <h3>Investissement Moto-Taxi</h3>
+            </div>
+            <p>Sécurisez vos recettes quotidiennes et surveillez les trajets de vos conducteurs pour éviter tout détournement ou vol.</p>
+        </div>
+
+        <div class="benefit-card">
+            <div class="benefit-header">
+                <span class="icon">❤️</span>
+                <h3>Sécurité Famille & Couple</h3>
+            </div>
+            <p>Gardez un lien constant avec vos proches. Idéal pour la protection des enfants et la tranquillité d'esprit du foyer.</p>
+        </div>
+
+        <div class="benefit-card">
+            <div class="benefit-header">
+                <span class="icon">💼</span>
+                <h3>Efficacité Logistique</h3>
+            </div>
+            <p>Suivez vos livraisons et vos coursiers avec une précision métrique. Améliorez la ponctualité de vos services.</p>
+        </div>
+
+        <div class="section-title">CHOISISSEZ VOTRE PROTECTION</div>
+
+        <div class="pricing-container">
+            <a href="inscription.html?pack=demo" class="price-card">
+                <h4>Pack Démo</h4>
+                <span class="price-val">0 FC</span>
+                <span class="price-info">Essai de 30 minutes<br>Usage unique par numéro</span>
+            </a>
+            <a href="inscription.html?pack=gold" class="price-card gold">
+                <h4>Pack Gold</h4>
+                <span class="price-val">5500 FC</span>
+                <span class="price-info">Mensuel / Illimité<br>Toutes fonctionnalités</span>
+            </a>
+        </div>
+
+        <div class="cta-container">
+            <p style="font-size: 0.8rem; color: #94a3b8; margin-bottom: 15px;">Prêt à activer votre surveillance ?</p>
+            <a href="inscription.html" class="btn-access">ACTIVER MON ACCÈS MAINTENANT</a>
+            
+            <a href="identification.html" class="login-link">
+                <span>Déjà inscrit ?</span> Se connecter à mon espace
+            </a>
+        </div>
+
+        <div class="footer-note">
+            Kimia Track &copy; 2026 - Solution de tracking furtif par satellite.
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        // Configuration de tes clés d'accès Supabase globales
+        const SUPABASE_URL = "https://ufwirghypzowlmeqqgco.supabase.co";
+        const SUPABASE_KEY = "sb_publishable_ZMjol0IAFBrmaZULUzR7IA_Gk31Msqq";
+        
+        // CORRECTION DE LIAISON : Utilisation du namespace complet pour le CDN
+        const supabase = supabase.supabasejs.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        // Optionnel : Vérification au chargement si un utilisateur possède déjà un numéro actif localement
+        window.onload = function() {
+            const numeroSauvegarde = localStorage.getItem('kt_telephone_num');
+            if (numeroSauvegarde) {
+                console.log("Utilisateur existant détecté : " + numeroSauvegarde);
+                // Tu pourras ajouter ici une redirection automatique vers le menu si désiré
+            }
+        };
+    </script>
+
 </body>
 </html>
