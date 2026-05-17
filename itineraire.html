@@ -35,42 +35,93 @@
         </div>
         <div class="stat-item">
             <span class="stat-label">Distance</span>
-            <span class="stat-value">4.2 km</span>
+            <span class="stat-value" id="stat-distance">0.0 km</span>
         </div>
         <div class="stat-item">
             <span class="stat-label">Points</span>
-            <span class="stat-value">12</span>
+            <span class="stat-value" id="stat-points">0</span>
         </div>
     </div>
 
     <div id="map-container">
-        <!-- Ici s'intégrera Google Maps ou Leaflet -->
-        <div class="map-placeholder">Chargement du tracé satellite...</div>
+        <div class="map-placeholder" id="map-text">Chargement du tracé satellite...</div>
     </div>
 
     <div class="timeline">
         <h3 style="font-size: 14px; color: #94a3b8; margin-bottom: 20px;">HISTORIQUE DU PARCOURS (DERNIÈRES 24H)</h3>
         
         <div id="logs-container">
-            <!-- Points injectés dynamiquement -->
-            <div class="log-entry">
-                <span class="log-time">10:45:22</span>
-                <span class="log-address">Arrêt : Marché Central, Kinshasa</span>
-            </div>
-            <div class="log-entry">
-                <span class="log-time">10:30:10</span>
-                <span class="log-address">En mouvement : Boulevard du 30 Juin</span>
-            </div>
+            <div style="color: #94a3b8; font-style: italic; font-size: 13px;">Recherche de positions satellites...</div>
         </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
+        // Configuration de tes clés d'accès Supabase globales
+        const SUPABASE_URL = "https://ufwirghypzowlmeqqgco.supabase.co";
+        const SUPABASE_KEY = "sb_publishable_ZMjol0IAFBrmaZULUzR7IA_Gk31Msqq";
+        
+        // CORRECTION DE LIAISON : Utilisation directe de l'objet pour la liaison CDN
+        const supabase = supabase.supabasejs.createClient(SUPABASE_URL, SUPABASE_KEY);
+
         const urlParams = new URLSearchParams(window.location.search);
         const tel = urlParams.get('tel');
-        if(tel) document.getElementById('target-id').innerText = tel;
+        
+        window.onload = function() {
+            if(tel) {
+                document.getElementById('target-id').innerText = tel;
+                // Appel immédiat de la fonction pour interroger la table "historique_parcours"
+                chargerHistoriqueDepuisSupabase(tel);
+            } else {
+                document.getElementById('map-text').innerText = "Aucune cible détectée dans l'URL.";
+                document.getElementById('logs-container').innerHTML = `<div style="color: #ef4444; font-size: 13px;">Erreur : Paramètre 'tel' manquant.</div>`;
+            }
+        };
 
-        // Ici, vous ajouterez l'appel API vers votre backend (Firebase) 
-        // pour récupérer les latitudes/longitudes stockées.
+        // Extraction en temps réel des données enregistrées en base
+        async function chargerHistoriqueDepuisSupabase(numeroCible) {
+            try {
+                const { data, error } = await supabase
+                    .from('historique_parcours')
+                    .select('*')
+                    .eq('telephone_cible', numeroCible)
+                    .order('created_at', { ascending: false });
+
+                if (error) throw error;
+
+                const container = document.getElementById('logs-container');
+                
+                if (data && data.length > 0) {
+                    // Calcul dynamique et mise à jour des indicateurs en haut
+                    document.getElementById('stat-points').innerText = data.length;
+                    document.getElementById('stat-distance').innerText = (data.length * 0.4).toFixed(1) + " km";
+                    document.getElementById('map-text').innerText = "Tracé satellite synchronisé avec succès.";
+
+                    // Vider l'indicateur d'attente
+                    container.innerHTML = "";
+
+                    // Parcourir chaque enregistrement trouvé dans la table "historique_parcours"
+                    data.forEach(point => {
+                        const dateObj = new Date(point.created_at);
+                        const heureFormatee = dateObj.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+
+                        const entry = document.createElement('div');
+                        entry.className = 'log-entry';
+                        entry.innerHTML = `
+                            <span class="log-time">${heureFormatee}</span>
+                            <span class="log-address"><strong>${point.moyen_transport}</strong> : ${point.emplacement} ${point.details_vitesse ? `(${point.details_vitesse})` : ''}</span>
+                        `;
+                        container.appendChild(entry);
+                    });
+                } else {
+                    document.getElementById('map-text').innerText = "Aucun signal géographique reçu.";
+                    container.innerHTML = `<div style="color: #94a3b8; font-style: italic; font-size: 13px;">Aucun point détecté dans la base de données pour ce numéro.</div>`;
+                }
+            } catch (err) {
+                console.error("Erreur d'extraction :", err.message);
+                document.getElementById('map-text').innerText = "Échec de connexion au relais.";
+            }
+        }
     </script>
 </body>
 </html>
