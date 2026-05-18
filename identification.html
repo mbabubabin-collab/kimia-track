@@ -5,34 +5,49 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Identification - Kimia Track</title>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background: #0f172a; color: white; margin: 0; padding: 20px; }
+        :root { --primary: #38bdf8; --bg: #0f172a; --card: #1e293b; --text: #f1f5f9; --accent: #eab308; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 20px; }
+        
         .header { text-align: center; margin-bottom: 30px; }
-        h2 { color: #38bdf8; margin-bottom: 5px; }
+        h2 { color: var(--primary); margin-bottom: 5px; }
         .subtitle { color: #94a3b8; font-size: 14px; }
-        .auth-box { background: #1e293b; padding: 20px; border-radius: 15px; border: 1px solid #334155; margin-bottom: 30px; }
-        input { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #475569; background: #0f172a; color: white; box-sizing: border-box; margin-bottom: 15px; }
+        
+        .auth-box { background: var(--card); padding: 20px; border-radius: 15px; border: 1px solid #334155; margin-bottom: 30px; }
+        label { font-size: 13px; color: #cbd5e1; display: block; margin-bottom: 5px; }
+        input { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #475569; background: #0f172a; color: white; box-sizing: border-box; margin-bottom: 15px; font-size: 14px; }
+        
+        .error-msg { color: #ef4444; font-size: 13px; margin-top: -5px; margin-bottom: 15px; display: none; text-align: center; font-weight: bold; }
+        
+        .btn-connexion { background: var(--primary); color: #0f172a; border: none; padding: 14px; width: 100%; border-radius: 8px; font-weight: bold; font-size: 15px; cursor: pointer; display: block; text-align: center; box-shadow: 0 4px 10px rgba(56, 189, 248, 0.2); }
+        .btn-connexion:disabled { background: #334155; color: #64748b; cursor: not-allowed; box-shadow: none; }
+        
         .choix-container { display: flex; flex-direction: column; gap: 15px; }
         .option-demo { background: #334155; padding: 15px; border-radius: 12px; border-left: 5px solid #94a3b8; cursor: pointer; }
-        .option-premium { background: #1e3a8a; padding: 15px; border-radius: 12px; border-left: 5px solid #fbbf24; cursor: pointer; position: relative; }
-        .badge-premium { background: #fbbf24; color: black; font-size: 10px; font-weight: bold; padding: 3px 8px; border-radius: 5px; position: absolute; top: 10px; right: 10px; }
+        .option-premium { background: #1e3a8a; padding: 15px; border-radius: 12px; border-left: 5px solid var(--accent); cursor: pointer; position: relative; }
+        .badge-premium { background: var(--accent); color: black; font-size: 10px; font-weight: bold; padding: 3px 8px; border-radius: 5px; position: absolute; top: 10px; right: 10px; }
+        
         h4 { margin: 0; font-size: 18px; }
         p { margin: 5px 0 0; font-size: 13px; color: #cbd5e1; }
-        .prix { font-weight: bold; color: #fbbf24; font-size: 16px; display: block; margin-top: 5px; }
-        .btn-connexion { background: #38bdf8; color: #0f172a; border: none; padding: 12px; width: 100%; border-radius: 8px; font-weight: bold; margin-bottom: 15px; cursor: pointer; display: block; text-align: center; }
-        .btn-connexion:disabled { background: #334155; color: #64748b; cursor: not-allowed; }
+        .prix { font-weight: bold; color: var(--accent); font-size: 16px; display: block; margin-top: 5px; }
         .btn-retour { display: block; text-align: center; margin-top: 25px; color: #64748b; text-decoration: none; font-size: 14px; }
     </style>
 </head>
 <body>
 
     <div class="header">
-        <h2>Content de vous revoir</h2>
-        <p class="subtitle">Connectez-vous pour accéder à vos services</p>
+        <h2>Connexion Sécurisée</h2>
+        <p class="subtitle">Console de contrôle Kimia Track</p>
     </div>
 
     <div class="auth-box">
-        <input id="input_tel" type="tel" placeholder="N° de téléphone (ex: 08...)">
-        <input id="input_pass" type="password" placeholder="Mot de passe (Uniquement pour l'Admin)">
+        <label>Identifiant (N° de téléphone)</label>
+        <input id="input_tel" type="tel" placeholder="Ex: 0861769481" required>
+        
+        <label>Mot de passe personnel</label>
+        <input id="input_pass" type="password" placeholder="Entrez votre mot de passe secret" required>
+        
+        <div id="error-zone" class="error-msg"></div>
+        
         <button class="btn-connexion" id="btn-login">SE CONNECTER</button>
     </div>
 
@@ -64,43 +79,37 @@
         
         const clientSupabase = Supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        // Liaison propre et directe de l'événement clic en JavaScript
         document.getElementById('btn-login').addEventListener('click', async function() {
             let telSaisi = document.getElementById('input_tel').value.trim();
             const passSaisi = document.getElementById('input_pass').value.trim();
             const btn = document.getElementById('btn-login');
+            const errorZone = document.getElementById('error-zone');
 
-            if(!telSaisi) {
-                alert("Veuillez saisir votre numéro de téléphone.");
+            errorZone.style.display = "none";
+
+            if(!telSaisi || !passSaisi) {
+                errorZone.innerText = "Veuillez remplir l'identifiant et le mot de passe.";
+                errorZone.style.display = "block";
                 return;
             }
 
-            // Bloquer le bouton immédiatement pour éviter les clics multiples
             btn.disabled = true;
             btn.innerText = "VÉRIFICATION...";
 
-            // 1. Connexion Administrateur Directe
+            // 1. PASSERELLE ADMINISTRATEUR DIRECTE
             const ADMIN_TEL = "243861769481"; 
             const ADMIN_PASS = "BMM2026";
 
-            if (telSaisi === ADMIN_TEL || telSaisi === "0861769481") {
-                if(passSaisi === ADMIN_PASS) {
-                    sessionStorage.setItem('auth_kimia', 'success');
-                    localStorage.setItem('kt_user_tel', ADMIN_TEL);
-                    localStorage.setItem('kt_solde_global', "999999");
-                    window.location.href = 'menu.html';
-                    return;
-                } else {
-                    alert("Mot de passe administrateur incorrect.");
-                    btn.disabled = false;
-                    btn.innerText = "SE CONNECTER";
-                    return;
-                }
+            if ((telSaisi === ADMIN_TEL || telSaisi === "0861769481") && passSaisi === ADMIN_PASS) {
+                sessionStorage.setItem('auth_kimia', 'success');
+                localStorage.setItem('kt_user_tel', ADMIN_TEL);
+                localStorage.setItem('kt_solde_global', "999999");
+                window.location.href = 'menu.html';
+                return;
             }
 
-            // 2. Connexion Client - Recherche dans Supabase
+            // 2. VÉRIFICATION DU CLIENT VIA LEUR VRAI MOT DE PASSE PERSONNALISÉ
             try {
-                // Premier essai avec le numéro exact tapé
                 let { data, error } = await clientSupabase
                     .from('profils')
                     .select('*')
@@ -109,7 +118,6 @@
 
                 if (error) throw error;
 
-                // Deuxième essai : si rien trouvé et que le numéro commence par '0', on teste avec '243'
                 if ((!data || data.length === 0) && telSaisi.startsWith('0')) {
                     const telAlternative = "243" + telSaisi.substring(1);
                     const reponseAlt = await clientSupabase
@@ -123,36 +131,37 @@
                     }
                 }
 
-                // Vérification du résultat final
                 if (data && data.length > 0) {
                     const profil = data[0];
                     
-                    sessionStorage.setItem('auth_kimia', 'success');
-                    localStorage.setItem('kt_user_tel', profil.whatsapp_num);
-                    localStorage.setItem('kt_solde_global', profil.solde_fc || 0);
+                    // Vérification de la colonne mot_de_passe personnalisée
+                    if (profil.mot_de_passe === passSaisi) {
+                        sessionStorage.setItem('auth_kimia', 'success');
+                        localStorage.setItem('kt_user_tel', profil.whatsapp_num);
+                        localStorage.setItem('kt_solde_global', profil.solde_fc || 0);
 
-                    // Redirection vers l'espace client
-                    window.location.href = 'menu.html';
+                        window.location.href = 'menu.html';
+                    } else {
+                        errorZone.innerText = "Mot de passe personnel incorrect.";
+                        errorZone.style.display = "block";
+                        btn.disabled = false;
+                        btn.innerText = "SE CONNECTER";
+                    }
                 } else {
-                    alert("Accès refusé : Ce numéro n'est pas encore enregistré.");
+                    errorZone.innerText = "Identifiant non reconnu ou compte inexistant.";
+                    errorZone.style.display = "block";
                     btn.disabled = false;
                     btn.innerText = "SE CONNECTER";
                 }
 
             } catch (error) {
                 console.error(error);
-                alert("Erreur de connexion réseau : " + error.message);
+                errorZone.innerText = "Erreur réseau : " + error.message;
+                errorZone.style.display = "block";
                 btn.disabled = false;
                 btn.innerText = "SE CONNECTER";
             }
         });
-
-        // Redirection automatique si déjà connecté
-        window.onload = function() {
-            if(sessionStorage.getItem('auth_kimia') === 'success') {
-                window.location.href = 'menu.html';
-            }
-        }
     </script>
 </body>
 </html>
