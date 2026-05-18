@@ -3,165 +3,193 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Identification - Kimia Track</title>
+    <title>Connexion - Kimia Track</title>
     <style>
-        :root { --primary: #38bdf8; --bg: #0f172a; --card: #1e293b; --text: #f1f5f9; --accent: #eab308; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 20px; }
+        :root { --primary: #38bdf8; --bg: #0f172a; --card: #1e293b; --text: #f1f5f9; --accent: #eab308; --success: #22c55e; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 15px; display: flex; flex-direction: column; min-height: 100vh; justify-content: center; box-sizing: border-box; }
         
-        .header { text-align: center; margin-bottom: 30px; }
-        h2 { color: var(--primary); margin-bottom: 5px; }
-        .subtitle { color: #94a3b8; font-size: 14px; }
+        .header { text-align: center; margin-bottom: 25px; }
+        .card { background: var(--card); padding: 25px; border-radius: 15px; border: 1px solid #334155; box-shadow: 0 10px 25px rgba(0,0,0,0.3); }
         
-        .auth-box { background: var(--card); padding: 20px; border-radius: 15px; border: 1px solid #334155; margin-bottom: 30px; }
-        label { font-size: 13px; color: #cbd5e1; display: block; margin-bottom: 5px; }
-        input { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #475569; background: #0f172a; color: white; box-sizing: border-box; margin-bottom: 15px; font-size: 14px; }
+        input { 
+            width: 100%; padding: 14px; margin: 10px 0; border-radius: 8px; 
+            border: 1px solid #475569; background: #0f172a; color: white; box-sizing: border-box; font-size: 15px;
+        }
+        input:focus { border-color: var(--primary); outline: none; }
+
+        .btn-connect { 
+            background: var(--primary); color: #0f172a; border: none; padding: 16px; 
+            width: 100%; border-radius: 8px; font-weight: bold; font-size: 16px; cursor: pointer;
+            margin-top: 15px; transition: all 0.2s;
+        }
+        .btn-connect:disabled { background: #334155; color: #64748b; cursor: not-allowed; }
         
-        .error-msg { color: #ef4444; font-size: 13px; margin-top: -5px; margin-bottom: 15px; display: none; text-align: center; font-weight: bold; }
+        .pack-selector { margin-top: 25px; text-align: center; }
+        .pack-box { background: rgba(56, 189, 248, 0.05); border: 1px solid #334155; border-radius: 10px; padding: 15px; margin-bottom: 12px; text-align: left; cursor: pointer; }
+        .pack-box.gold { border-left: 4px solid var(--accent); }
+        .pack-box.demo { border-left: 4px solid var(--primary); }
         
-        .btn-connexion { background: var(--primary); color: #0f172a; border: none; padding: 14px; width: 100%; border-radius: 8px; font-weight: bold; font-size: 15px; cursor: pointer; display: block; text-align: center; box-shadow: 0 4px 10px rgba(56, 189, 248, 0.2); }
-        .btn-connexion:disabled { background: #334155; color: #64748b; cursor: not-allowed; box-shadow: none; }
-        
-        .choix-container { display: flex; flex-direction: column; gap: 15px; }
-        .option-demo { background: #334155; padding: 15px; border-radius: 12px; border-left: 5px solid #94a3b8; cursor: pointer; }
-        .option-premium { background: #1e3a8a; padding: 15px; border-radius: 12px; border-left: 5px solid var(--accent); cursor: pointer; position: relative; }
-        .badge-premium { background: var(--accent); color: black; font-size: 10px; font-weight: bold; padding: 3px 8px; border-radius: 5px; position: absolute; top: 10px; right: 10px; }
-        
-        h4 { margin: 0; font-size: 18px; }
-        p { margin: 5px 0 0; font-size: 13px; color: #cbd5e1; }
-        .prix { font-weight: bold; color: var(--accent); font-size: 16px; display: block; margin-top: 5px; }
-        .btn-retour { display: block; text-align: center; margin-top: 25px; color: #64748b; text-decoration: none; font-size: 14px; }
+        .footer-link { display: block; text-align: center; margin-top: 20px; color: #94a3b8; text-decoration: none; font-size: 13px; }
     </style>
 </head>
 <body>
 
     <div class="header">
-        <h2>Connexion Sécurisée</h2>
-        <p class="subtitle">Console de contrôle Kimia Track</p>
+        <h2 style="color: var(--primary); margin: 0;">Content de vous revoir</h2>
+        <p style="font-size: 13px; opacity: 0.7; margin-top: 5px;">Connectez-vous pour accéder à vos services</p>
     </div>
 
-    <div class="auth-box">
-        <label>Identifiant (N° de téléphone)</label>
-        <input id="input_tel" type="tel" placeholder="Ex: 0861769481" required>
-        
-        <label>Mot de passe personnel</label>
-        <input id="input_pass" type="password" placeholder="Entrez votre mot de passe secret" required>
-        
-        <div id="error-zone" class="error-msg"></div>
-        
-        <button class="btn-connexion" id="btn-login">SE CONNECTER</button>
-    </div>
-
-    <div class="header">
-        <h3>Nouveau sur Kimia Track ?</h3>
-    </div>
-
-    <div class="choix-container">
-        <div class="option-demo" onclick="window.location.href='inscription.html?pack=demo'">
-            <h4>Version DÉMO</h4>
-            <p>Testez la précision du signal gratuitement pendant 30 min.</p>
-            <span class="prix">Gratuit</span>
-        </div>
-
-        <div class="option-premium" onclick="window.location.href='inscription.html?pack=gold'">
-            <span class="badge-premium">RECOMMANDÉ</span>
-            <h4>KIMIA GOLD</h4>
-            <p>Suivi illimité et protection totale de vos appareils.</p>
-            <span class="prix">5.500 FC (Activation unique)</span>
+    <div class="card">
+        <div id="login-form">
+            <input type="tel" id="login_telephone" placeholder="N° de téléphone (ex: 08...)" required>
+            <input type="password" id="login_password" placeholder="Mot de passe personnalisé" required>
+            
+            <button class="btn-connect" id="btn-submit-login" disabled onclick="verifierConnexion()">CONNEXION SERVEUR EN COURS...</button>
         </div>
     </div>
 
-    <a href="index.html" class="btn-retour">Annuler et revenir à l'accueil</a>
+    <div class="pack-selector">
+        <p style="font-size: 14px; font-weight: bold; margin-bottom: 15px;">Nouveau sur Kimia Track ?</p>
+        
+        <div class="pack-box demo" onclick="redirigerInscription('demo')">
+            <h4 style="margin: 0; color: var(--primary);">Version DÉMO</h4>
+            <p style="margin: 5px 0 0 0; font-size: 12px; opacity: 0.8;">Testez la précision du signal gratuitement pendant 30 min.</p>
+            <strong style="color: var(--success); font-size: 13px; display:block; margin-top:5px;">Gratuit</strong>
+        </div>
+
+        <div class="pack-box gold" onclick="redirigerInscription('gold')">
+            <h4 style="margin: 0; color: var(--accent);">KIMIA GOLD <span style="font-size: 9px; background: var(--accent); color: #0f172a; padding: 2px 5px; border-radius: 3px; margin-left: 5px;">RECOMMANDÉ</span></h4>
+            <p style="margin: 5px 0 0 0; font-size: 12px; opacity: 0.8;">Suivi illimité et protection totale de vos appareils.</p>
+            <strong style="color: var(--accent); font-size: 13px; display:block; margin-top:5px;">5.500 FC (Activation unique)</strong>
+        </div>
+    </div>
+
+    <a href="index.html" class="footer-link">Annuler et revenir à l'accueil</a>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
-        const SUPABASE_URL = "https://ufwirghypzowlmeqqgco.supabase.co";
-        const SUPABASE_KEY = "sb_publishable_ZMjol0IAFBrmaZULUzR7IA_Gk31Msqq";
-        
-        const clientSupabase = Supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        let clientSupabase;
 
-        document.getElementById('btn-login').addEventListener('click', async function() {
-            let telSaisi = document.getElementById('input_tel').value.trim();
-            const passSaisi = document.getElementById('input_pass').value.trim();
-            const btn = document.getElementById('btn-login');
-            const errorZone = document.getElementById('error-zone');
+        // Connexion sécurisée et asynchrone au SDK Supabase pour Mobile
+        function attacherSupabase() {
+            const SUPABASE_URL = "https://ufwirghypzowlmeqqgco.supabase.co";
+            const SUPABASE_KEY = "sb_publishable_ZMjol0IAFBrmaZULUzR7IA_Gk31Msqq";
+            const btn = document.getElementById('btn-submit-login');
 
-            errorZone.style.display = "none";
+            try {
+                if (typeof supabase !== 'undefined') {
+                    clientSupabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+                } else if (typeof Supabase !== 'undefined') {
+                    clientSupabase = Supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+                }
 
-            if(!telSaisi || !passSaisi) {
-                errorZone.innerText = "Veuillez remplir l'identifiant et le mot de passe.";
-                errorZone.style.display = "block";
+                if (clientSupabase) {
+                    console.log("Supabase prêt pour identification.");
+                    btn.disabled = false;
+                    btn.innerText = "SE CONNECTER";
+                } else {
+                    setTimeout(attacherSupabase, 300); // Relance si le script CDN a du retard
+                }
+            } catch (e) {
+                setTimeout(attacherSupabase, 300);
+            }
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            attacherSupabase();
+
+            // Pré-remplissage intelligent si le numéro est resté en cache local
+            const localTel = localStorage.getItem('kt_user_tel');
+            if (localTel) {
+                document.getElementById('login_telephone').value = localTel;
+            }
+        });
+
+        function redirigerInscription(pack) {
+            // Nettoyage et initialisation propre de la session selon le choix
+            localStorage.clear(); 
+            if (pack === 'demo') {
+                localStorage.setItem('kt_session_id', 'DEMO-' + Date.now());
+                window.location.href = "inscription.html?pack=demo";
+            } else {
+                localStorage.setItem('kt_session_id', 'GOLD-' + Date.now());
+                window.location.href = "inscription.html?pack=gold";
+            }
+        }
+
+        async function verifierConnexion() {
+            const btn = document.getElementById('btn-submit-login');
+            const numTel = document.getElementById('login_telephone').value.trim();
+            const motDePasseSaisi = document.getElementById('login_password').value.trim();
+
+            if (!numTel || !motDePasseSaisi) {
+                alert("Veuillez saisir votre numéro de téléphone et votre mot de passe.");
+                return;
+            }
+
+            if (!clientSupabase) {
+                alert("Le serveur n'est pas encore tout à fait prêt. Réessayez dans une seconde.");
+                attacherSupabase();
                 return;
             }
 
             btn.disabled = true;
-            btn.innerText = "VÉRIFICATION...";
+            btn.innerText = "⌛ VÉRIFICATION SUR LE SERVEUR...";
 
-            // 1. PASSERELLE ADMINISTRATEUR DIRECTE
-            const ADMIN_TEL = "243861769481"; 
-            const ADMIN_PASS = "BMM2026";
-
-            if ((telSaisi === ADMIN_TEL || telSaisi === "0861769481") && passSaisi === ADMIN_PASS) {
-                sessionStorage.setItem('auth_kimia', 'success');
-                localStorage.setItem('kt_user_tel', ADMIN_TEL);
-                localStorage.setItem('kt_solde_global', "999999");
-                window.location.href = 'menu.html';
-                return;
-            }
-
-            // 2. VÉRIFICATION DU CLIENT VIA LEUR VRAI MOT DE PASSE PERSONNALISÉ
             try {
-                let { data, error } = await clientSupabase
+                // Requête de récupération du profil
+                const { data, error } = await clientSupabase
                     .from('profils')
                     .select('*')
-                    .eq('whatsapp_num', telSaisi)
-                    .limit(1);
+                    .eq('whatsapp_num', numTel)
+                    .maybeSingle(); // Évite le crash si aucun numéro ne correspond
 
                 if (error) throw error;
 
-                if ((!data || data.length === 0) && telSaisi.startsWith('0')) {
-                    const telAlternative = "243" + telSaisi.substring(1);
-                    const reponseAlt = await clientSupabase
-                        .from('profils')
-                        .select('*')
-                        .eq('whatsapp_num', telAlternative)
-                        .limit(1);
-                    
-                    if (!reponseAlt.error && reponseAlt.data && reponseAlt.data.length > 0) {
-                        data = reponseAlt.data;
-                    }
-                }
-
-                if (data && data.length > 0) {
-                    const profil = data[0];
-                    
-                    // Vérification de la colonne mot_de_passe personnalisée
-                    if (profil.mot_de_passe === passSaisi) {
-                        sessionStorage.setItem('auth_kimia', 'success');
-                        localStorage.setItem('kt_user_tel', profil.whatsapp_num);
-                        localStorage.setItem('kt_solde_global', profil.solde_fc || 0);
-
-                        window.location.href = 'menu.html';
-                    } else {
-                        errorZone.innerText = "Mot de passe personnel incorrect.";
-                        errorZone.style.display = "block";
-                        btn.disabled = false;
-                        btn.innerText = "SE CONNECTER";
-                    }
-                } else {
-                    errorZone.innerText = "Identifiant non reconnu ou compte inexistant.";
-                    errorZone.style.display = "block";
+                if (!data) {
+                    alert("❌ Aucun compte trouvé avec ce numéro. Veuillez vérifier ou vous inscrire.");
                     btn.disabled = false;
                     btn.innerText = "SE CONNECTER";
+                    return;
                 }
 
-            } catch (error) {
-                console.error(error);
-                errorZone.innerText = "Erreur réseau : " + error.message;
-                errorZone.style.display = "block";
+                // VÉRIFICATION DU MOT DE PASSE SYNCHRONISÉ
+                if (data.mot_de_passe !== motDePasseSaisi) {
+                    alert("❌ Mot de passe incorrect. Veuillez réessayer.");
+                    btn.disabled = false;
+                    btn.innerText = "SE CONNECTER";
+                    return;
+                }
+
+                // VÉRIFICATION DE L'ACCÈS DU COMPTE GOLD
+                if (data.statut_compte === "GOLD" && data.code_transaction_activation === "EN-ATTENTE") {
+                    alert("⌛ Votre paiement de 5500 FC est en cours de vérification par l'administrateur. Veuillez patienter.");
+                    btn.disabled = false;
+                    btn.innerText = "SE CONNECTER";
+                    return;
+                }
+
+                // Sauvegarde globale des données de session approuvées
+                localStorage.setItem('kt_user_tel', data.whatsapp_num);
+                localStorage.setItem('kt_user_nom', data.nom);
+                localStorage.setItem('kt_solde_global', data.solde_fc);
+                localStorage.setItem('kt_sms_demo', data.sms_tracking_restants);
+                localStorage.setItem('kt_auth_status', 'connected');
+
+                alert(`✨ Ravis de vous revoir, ${data.nom} !`);
+                
+                // Redirection finale sécurisée vers le tableau de bord (menu.html)
+                setTimeout(() => {
+                    window.location.replace("menu.html");
+                }, 200);
+
+            } catch (err) {
+                console.error(err);
+                alert("Erreur de connexion : " + err.message);
                 btn.disabled = false;
                 btn.innerText = "SE CONNECTER";
             }
-        });
+        }
     </script>
 </body>
 </html>
