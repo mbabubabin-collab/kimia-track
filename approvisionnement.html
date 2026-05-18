@@ -93,19 +93,17 @@
             <input type="text" id="code_transaction" placeholder="Ex: MP260518... ou TXN-..." required>
         </div>
 
-        <button class="btn-pay" id="btn-submit-pay" onclick="finaliserEtEnregistrer()">VALIDER ET CRÉER MON COMPTE</button>
+        <button class="btn-pay" id="btn-submit-pay" onclick="finaliserEtEnregistrer()">VALIDER ET CONFIRMER MON COMPTE</button>
     </div>
 
     <a href="inscription.html" class="btn-back">← Retour à l'inscription</a>
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.43.4/dist/umd/supabase.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
-        // Déclarations globales stables
         let clientSupabase;
         let reseauSelectionne = "Airtel Money";
         let modeAcces = "GOLD"; 
 
-        // Numéros admins de secours par défaut au cas où la table configuration est vide ou introuvable
         let numerosAdmin = {
             "Airtel Money": "0991662996",
             "Orange Money": "0896005700",
@@ -113,61 +111,48 @@
             "Afrimoney": "0904003002"
         };
 
-        // Récupération des données temporaires de l'étape précédente
         let tempNom = localStorage.getItem('kt_user_nom');
         let tempTel = localStorage.getItem('kt_user_tel');
 
-        // Initialisation asynchrone sécurisée par DOMContentLoaded
         window.addEventListener('DOMContentLoaded', async () => {
             try {
                 const SUPABASE_URL = "https://ufwirghypzowlmeqqgco.supabase.co";
                 const SUPABASE_KEY = "sb_publishable_ZMjol0IAFBrmaZULUzR7IA_Gk31Msqq";
                 
-                // Routage vers l'espace de nom global stable du CDN
-                if (window.supabase) {
-                    clientSupabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-                } else if (typeof Supabase !== 'undefined') {
+                if (typeof Supabase !== 'undefined') {
                     clientSupabase = Supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
                 } else {
-                    console.error("Impossible de charger le script global Supabase.");
+                    console.error("Script global Supabase introuvable.");
                 }
 
-                // Configuration initiale de la vue
-                const urlParams = new URLSearchParams(window.location.search);
-                if (urlParams.get('pack') === 'demo' || localStorage.getItem('kt_session_id')?.startsWith('DEMO-')) {
+                // Détection stricte du mode basé sur le stockage local initialisé par l'inscription
+                const sessionId = localStorage.getItem('kt_session_id');
+                if (sessionId && sessionId.startsWith('DEMO-')) {
                     modeAcces = "DEMO";
                     configurerModeDemo();
                 }
 
-                // Pré-remplissage du numéro de téléphone s'il existe dans le cache local
                 if (tempTel) {
                     const inputDepot = document.getElementById('numero_depot');
                     if (inputDepot) inputDepot.value = tempTel;
                 }
 
-                // Chargement des données dynamiques
                 if (modeAcces === "GOLD" && clientSupabase) {
                     await chargerNumerosAdminDepuisSupabase();
                 } else {
-                    // Si mode DEMO, on met quand même à jour avec les numéros par défaut pour l'affichage initial
                     const elNumTxt = document.getElementById('num-admin-txt');
                     if (elNumTxt) elNumTxt.innerText = numerosAdmin[reseauSelectionne];
                 }
 
             } catch (e) {
-                console.error("Erreur d'initialisation de l'interface client :", e.message);
+                console.error("Erreur d'initialisation :", e.message);
             }
         });
 
-        // Téléchargement des configurations en temps réel depuis l'espace admin (table : configuration)
         async function chargerNumerosAdminDepuisSupabase() {
             try {
                 if (!clientSupabase) return;
-
-                const { data, error } = await clientSupabase
-                    .from('configuration')
-                    .select('cle, valeur');
-
+                const { data, error } = await clientSupabase.from('configuration').select('cle, valeur');
                 if (error) throw error;
 
                 if (data && data.length > 0) {
@@ -179,9 +164,8 @@
                     });
                 }
             } catch (err) {
-                console.error("Mode de secours activé (numéros par défaut utilisés) :", err.message);
+                console.error("Mode secours activé (numéros par défaut) :", err.message);
             } finally {
-                // Met à jour l'affichage avec le numéro final extrait
                 const elNumTxt = document.getElementById('num-admin-txt');
                 if (elNumTxt) elNumTxt.innerText = numerosAdmin[reseauSelectionne];
             }
@@ -208,8 +192,8 @@
         async function finaliserEtEnregistrer() {
             const btn = document.getElementById('btn-submit-pay');
             
-            if (!tempTel || !tempNom) {
-                alert("Erreur : Données d'inscription manquantes. Veuillez recommencer.");
+            if (!tempTel) {
+                alert("Erreur : Numéro de téléphone propriétaire introuvable. Veuillez vous réinscrire.");
                 window.location.href = 'inscription.html';
                 return;
             }
@@ -232,48 +216,48 @@
             }
 
             if (!clientSupabase) {
-                alert("⚠️ Le module de stockage n'est pas encore prêt. Patientez une seconde ou actualisez la page.");
+                alert("Le module Supabase n'est pas prêt. Veuillez rafraîchir la page.");
                 return;
             }
 
             btn.disabled = true;
-            btn.innerText = "⌛ ENREGISTREMENT DANS SUPABASE...";
+            btn.innerText = "⌛ MISE À JOUR DE VOTRE PROFIL SERVEUR...";
 
             try {
-                // CRÉATION ET ENREGISTREMENT DU PROFIL DE L'UTILISATEUR
+                // CORRECTION STRIP : On fait un UPDATE au lieu d'un INSERT car la ligne existe déjà 
+                // grâce à la validation sur inscription.html
                 const { error } = await clientSupabase
                     .from('profils')
-                    .insert([{
-                        whatsapp_num: tempTel,
-                        nom: tempNom,
+                    .update({
                         solde_fc: soldeInitial,
                         sms_tracking_restants: smsCadeau, 
                         code_transaction_activation: codeTxn,
                         reseau_paiement: modeAcces === "GOLD" ? reseauSelectionne : "DEMO",
                         statut_compte: modeAcces
-                    }]);
+                    })
+                    .eq('whatsapp_num', tempTel); // Recherche ciblée sur son numéro existant
 
                 if (error) throw error;
 
-                // Mise à jour de la mémoire locale du téléphone
+                // Sauvegardes de session
                 localStorage.setItem('kt_solde_global', soldeInitial);
                 localStorage.setItem('kt_sms_demo', smsCadeau);
                 localStorage.setItem('kt_auth_status', 'registered');
 
                 if (modeAcces === "GOLD") {
-                    alert(`✅ Inscription validée !\nCode de transaction soumis : ${codeTxn}.\nVotre accès sera activé après vérification.`);
+                    alert(`✅ Informations soumises !\nCode de transaction : ${codeTxn}.\nVotre accès Gold s'activera après vérification manuelle.`);
                 } else {
-                    alert("✅ Compte Démo créé !\nVos 3 SMS de tracking gratuits ont été crédités.");
+                    alert("✅ Activation réussie !\nVos 3 SMS Démo gratuits sont actifs.");
                 }
                 
-                // Redirection directe vers la page d'identification devenue fonctionnelle
+                // Redirection finale et logique vers l'identification
                 window.location.href = "identification.html";
 
             } catch (err) {
                 console.error(err);
-                alert("Erreur d'enregistrement dans la base de données : " + err.message);
+                alert("Erreur lors de la mise à jour de votre compte : " + err.message);
                 btn.disabled = false;
-                btn.innerText = modeAcces === "GOLD" ? "VALIDER ET CRÉER MON COMPTE" : "RECEVOIR MON CADEAU & M'ACTIVER";
+                btn.innerText = modeAcces === "GOLD" ? "VALIDER ET CONFIRMER MON COMPTE" : "RECEVOIR MON CADEAU & M'ACTIVER";
             }
         }
     </script>
