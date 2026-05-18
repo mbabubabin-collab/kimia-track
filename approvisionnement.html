@@ -16,7 +16,6 @@
             border: 1px solid #475569; background: #0f172a; color: white; box-sizing: border-box; font-size: 14px;
         }
 
-        /* Grille pour les 4 réseaux de la RDC */
         .network-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin: 12px 0; }
         .network-btn { 
             background: #0f172a; border: 1px solid #475569; border-radius: 8px; padding: 12px 5px; 
@@ -29,11 +28,9 @@
         .vodacom { color: #4ade80; }
         .africell { color: #c084fc; }
 
-        /* Bloc d'instructions de paiement Admin */
         .admin-instruction-box { background: rgba(234, 179, 8, 0.1); border: 1px dashed var(--accent); border-radius: 10px; padding: 12px; margin: 15px 0; text-align: center; font-size: 13px; }
         .admin-number { font-size: 18px; font-weight: bold; color: var(--accent); display: block; margin-top: 5px; }
 
-        /* Bloc Cadeau Démo */
         .demo-gift-box { background: rgba(34, 197, 94, 0.1); border: 1px solid var(--success); border-radius: 10px; padding: 15px; text-align: center; margin-bottom: 15px; }
 
         .btn-pay { 
@@ -93,7 +90,7 @@
             <input type="text" id="code_transaction" placeholder="Ex: MP260518... ou TXN-..." required>
         </div>
 
-        <button class="btn-pay" id="btn-submit-pay" onclick="finaliserEtEnregistrer()">VALIDER ET CONFIRMER MON COMPTE</button>
+        <button class="btn-pay" id="btn-submit-pay" disabled onclick="finaliserEtEnregistrer()">CONNEXION SERVEUR EN COURS...</button>
     </div>
 
     <a href="inscription.html" class="btn-back">← Retour à l'inscription</a>
@@ -114,39 +111,57 @@
         let tempNom = localStorage.getItem('kt_user_nom');
         let tempTel = localStorage.getItem('kt_user_tel');
 
-        window.addEventListener('DOMContentLoaded', async () => {
+        // Initialisation immédiate et sécurisée du client Supabase
+        function initialiserClient() {
+            const SUPABASE_URL = "https://ufwirghypzowlmeqqgco.supabase.co";
+            const SUPABASE_KEY = "sb_publishable_ZMjol0IAFBrmaZULUzR7IA_Gk31Msqq";
+            const btn = document.getElementById('btn-submit-pay');
+
             try {
-                const SUPABASE_URL = "https://ufwirghypzowlmeqqgco.supabase.co";
-                const SUPABASE_KEY = "sb_publishable_ZMjol0IAFBrmaZULUzR7IA_Gk31Msqq";
-                
-                if (typeof Supabase !== 'undefined') {
+                if (typeof supabase !== 'undefined') {
+                    clientSupabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+                } else if (typeof Supabase !== 'undefined') {
                     clientSupabase = Supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+                }
+
+                if (clientSupabase) {
+                    console.log("Supabase lié avec succès.");
+                    // On débloque le bouton dès que le SDK est fonctionnel
+                    btn.disabled = false;
+                    btn.innerText = (modeAcces === "GOLD") ? "VALIDER ET CONFIRMER MON COMPTE" : "RECEVOIR MON CADEAU & M'ACTIVER";
                 } else {
-                    console.error("Script global Supabase introuvable.");
+                    setTimeout(initialiserClient, 300); // Ré-essai si pas encore injecté
                 }
+            } catch(e) {
+                console.error("Erreur d'attachement du SDK, nouvel essai...", e);
+                setTimeout(initialiserClient, 300);
+            }
+        }
 
-                // Détection stricte du mode basé sur le stockage local initialisé par l'inscription
-                const sessionId = localStorage.getItem('kt_session_id');
-                if (sessionId && sessionId.startsWith('DEMO-')) {
-                    modeAcces = "DEMO";
-                    configurerModeDemo();
-                }
+        window.addEventListener('DOMContentLoaded', async () => {
+            // Lancement de la détection de Supabase
+            initialiserClient();
 
-                if (tempTel) {
-                    const inputDepot = document.getElementById('numero_depot');
-                    if (inputDepot) inputDepot.value = tempTel;
-                }
+            const sessionId = localStorage.getItem('kt_session_id');
+            if (sessionId && sessionId.startsWith('DEMO-')) {
+                modeAcces = "DEMO";
+                configurerModeDemo();
+            }
 
+            if (tempTel) {
+                const inputDepot = document.getElementById('numero_depot');
+                if (inputDepot) inputDepot.value = tempTel;
+            }
+
+            // Temporisation légère pour s'assurer que l'appel API ne bloque pas le thread mobile
+            setTimeout(async () => {
                 if (modeAcces === "GOLD" && clientSupabase) {
                     await chargerNumerosAdminDepuisSupabase();
                 } else {
                     const elNumTxt = document.getElementById('num-admin-txt');
                     if (elNumTxt) elNumTxt.innerText = numerosAdmin[reseauSelectionne];
                 }
-
-            } catch (e) {
-                console.error("Erreur d'initialisation :", e.message);
-            }
+            }, 400);
         });
 
         async function chargerNumerosAdminDepuisSupabase() {
@@ -164,7 +179,7 @@
                     });
                 }
             } catch (err) {
-                console.error("Mode secours activé (numéros par défaut) :", err.message);
+                console.log("Fallback aux numéros par défaut.");
             } finally {
                 const elNumTxt = document.getElementById('num-admin-txt');
                 if (elNumTxt) elNumTxt.innerText = numerosAdmin[reseauSelectionne];
@@ -176,8 +191,11 @@
             document.getElementById('page-subtitle').innerText = "Initialisation de vos accès gratuits";
             document.getElementById('section-demo').style.display = "block";
             document.getElementById('section-gold-inputs').style.display = "none";
-            document.getElementById('btn-submit-pay').innerText = "RECEVOIR MON CADEAU & M'ACTIVER";
-            document.getElementById('btn-submit-pay').style.background = "var(--primary)";
+            const btn = document.getElementById('btn-submit-pay');
+            if(btn) {
+                btn.innerText = "RECEVOIR MON CADEAU & M'ACTIVER";
+                btn.style.background = "var(--primary)";
+            }
         }
 
         function changerReseau(element, name) {
@@ -193,7 +211,7 @@
             const btn = document.getElementById('btn-submit-pay');
             
             if (!tempTel) {
-                alert("Erreur : Numéro de téléphone propriétaire introuvable. Veuillez vous réinscrire.");
+                alert("Erreur : Numéro propriétaire introuvable. Retour à l'inscription.");
                 window.location.href = 'inscription.html';
                 return;
             }
@@ -207,7 +225,7 @@
                 codeTxn = document.getElementById('code_transaction').value.trim();
 
                 if (!numDepot || !codeTxn) {
-                    alert("Veuillez renseigner votre numéro de débit ainsi que le code de transaction SMS.");
+                    alert("Veuillez renseigner le numéro de débit et le code de transaction.");
                     return;
                 }
                 soldeInitial = 5500; 
@@ -216,16 +234,16 @@
             }
 
             if (!clientSupabase) {
-                alert("Le module Supabase n'est pas prêt. Veuillez rafraîchir la page.");
+                alert("Le module de stockage n'est pas tout à fait prêt, un court instant s'il vous plaît...");
+                initialiserClient();
                 return;
             }
 
             btn.disabled = true;
-            btn.innerText = "⌛ MISE À JOUR DE VOTRE PROFIL SERVEUR...";
+            btn.innerText = "⌛ ENREGISTREMENT ET VALIDATION...";
 
             try {
-                // CORRECTION STRIP : On fait un UPDATE au lieu d'un INSERT car la ligne existe déjà 
-                // grâce à la validation sur inscription.html
+                // UPDATE du profil pré-existant créé lors de la soumission de l'inscription
                 const { error } = await clientSupabase
                     .from('profils')
                     .update({
@@ -235,27 +253,25 @@
                         reseau_paiement: modeAcces === "GOLD" ? reseauSelectionne : "DEMO",
                         statut_compte: modeAcces
                     })
-                    .eq('whatsapp_num', tempTel); // Recherche ciblée sur son numéro existant
+                    .eq('whatsapp_num', tempTel);
 
                 if (error) throw error;
 
-                // Sauvegardes de session
                 localStorage.setItem('kt_solde_global', soldeInitial);
                 localStorage.setItem('kt_sms_demo', smsCadeau);
                 localStorage.setItem('kt_auth_status', 'registered');
 
                 if (modeAcces === "GOLD") {
-                    alert(`✅ Informations soumises !\nCode de transaction : ${codeTxn}.\nVotre accès Gold s'activera après vérification manuelle.`);
+                    alert(`✅ Inscription validée !\nCode soumis : ${codeTxn}.\nAccès actif après vérification.`);
                 } else {
-                    alert("✅ Activation réussie !\nVos 3 SMS Démo gratuits sont actifs.");
+                    alert("✅ Compte Démo activé !\nVos 3 SMS gratuits ont été crédités.");
                 }
                 
-                // Redirection finale et logique vers l'identification
                 window.location.href = "identification.html";
 
             } catch (err) {
                 console.error(err);
-                alert("Erreur lors de la mise à jour de votre compte : " + err.message);
+                alert("Erreur réseau de mise à jour : " + err.message);
                 btn.disabled = false;
                 btn.innerText = modeAcces === "GOLD" ? "VALIDER ET CONFIRMER MON COMPTE" : "RECEVOIR MON CADEAU & M'ACTIVER";
             }
