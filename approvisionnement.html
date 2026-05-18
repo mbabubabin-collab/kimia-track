@@ -3,416 +3,250 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kimia Track - Admin Panel</title>
+    <title>Approvisionnement - Kimia Track</title>
     <style>
-        :root { 
-            --primary: #38bdf8; --bg: #0f172a; --card: #1e293b; --text: #f1f5f9; 
-            --accent: #eab308; --danger: #ef4444; --success: #22c55e; --manager: #a855f7;
-        }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 10px; }
-        .login-overlay { position: fixed; inset: 0; background: var(--bg); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 1000; }
-        .card { background: var(--card); padding: 20px; border-radius: 12px; width: 95%; max-width: 500px; border: 1px solid #334155; margin: 0 auto 15px auto; box-sizing: border-box; }
-        .nav-tabs { display: flex; gap: 5px; margin-bottom: 15px; overflow-x: auto; padding-bottom: 5px; }
-        .tab { padding: 8px 15px; background: #2d3a4f; border-radius: 20px; font-size: 0.8rem; cursor: pointer; white-space: nowrap; }
-        .tab.active { background: var(--primary); color: var(--bg); font-weight: bold; }
-        .section { display: none; }
-        .section.active { display: block; }
-        table { width: 100%; border-collapse: collapse; font-size: 0.75rem; }
-        th, td { border: 1px solid #334155; padding: 8px; text-align: left; }
-        th { background: #2d3a4f; color: var(--primary); }
-        input, select, textarea { width: 100%; padding: 10px; margin: 5px 0; background: #0f172a; border: 1px solid #334155; color: white; border-radius: 6px; box-sizing: border-box; }
-        .btn { width: 100%; padding: 12px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 10px; }
-        .btn-acc { background: var(--success); color: white; padding: 8px 15px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; }
-        .btn-acc:disabled { background: #334155; color: #64748b; cursor: not-allowed; }
-        .rubrique-credit { background: #0f172a; padding: 12px; border-radius: 8px; border-left: 3px solid var(--primary); margin-bottom: 10px; }
-        #preview-img { max-width: 100%; border-radius: 8px; margin-top: 10px; display: none; }
+        :root { --primary: #38bdf8; --bg: #0f172a; --card: #1e293b; --text: #f1f5f9; --accent: #eab308; --success: #22c55e; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 15px; }
         
-        .stat-box { background: #0f172a; padding: 12px; border-radius: 8px; border-bottom: 3px solid transparent; }
-        .net-gain { background: #1e293b; padding: 15px; border-radius: 8px; border: 1px solid var(--success); margin-top: 10px; text-align: center; }
-        .config-group { margin-bottom: 12px; background: #0f172a; padding: 10px; border-radius: 8px; border: 1px solid #334155; }
-        .config-group label { font-size: 0.8rem; font-weight: bold; display: block; margin-bottom: 3px; }
+        .header { text-align: center; margin-bottom: 20px; }
+        .card { background: var(--card); padding: 20px; border-radius: 15px; border: 1px solid #334155; position: relative; margin-bottom: 20px; }
+        
+        input, select { 
+            width: 100%; padding: 12px; margin: 8px 0; border-radius: 8px; 
+            border: 1px solid #475569; background: #0f172a; color: white; box-sizing: border-box; font-size: 14px;
+        }
+
+        /* Grille pour les 4 réseaux de la RDC */
+        .network-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin: 12px 0; }
+        .network-btn { 
+            background: #0f172a; border: 1px solid #475569; border-radius: 8px; padding: 12px 5px; 
+            color: white; font-weight: bold; font-size: 12px; cursor: pointer; text-align: center;
+        }
+        .network-btn.active { border-color: var(--primary); background: rgba(56, 189, 248, 0.1); }
+        
+        .airtel { color: #ff0000; }
+        .orange { color: #ff6600; }
+        .vodacom { color: #4ade80; }
+        .africell { color: #c084fc; }
+
+        /* Bloc d'instructions de paiement Admin */
+        .admin-instruction-box { background: rgba(234, 179, 8, 0.1); border: 1px dashed var(--accent); border-radius: 10px; padding: 12px; margin: 15px 0; text-align: center; font-size: 13px; }
+        .admin-number { font-size: 18px; font-weight: bold; color: var(--accent); display: block; margin-top: 5px; }
+
+        /* Bloc Cadeau Démo */
+        .demo-gift-box { background: rgba(34, 197, 94, 0.1); border: 1px solid var(--success); border-radius: 10px; padding: 15px; text-align: center; margin-bottom: 15px; }
+
+        .btn-pay { 
+            background: var(--success); color: white; border: none; padding: 18px; 
+            width: 100%; border-radius: 10px; font-weight: bold; font-size: 16px; cursor: pointer;
+            box-shadow: 0 4px 15px rgba(34, 197, 94, 0.3); margin-top: 10px;
+        }
+        .btn-pay:disabled { background: #334155; color: #64748b; box-shadow: none; cursor: not-allowed; }
+        
+        .btn-back { display: block; text-align: center; margin-top: 20px; color: #94a3b8; text-decoration: none; font-size: 13px; }
     </style>
 </head>
 <body>
 
-    <div id="login-screen" class="login-overlay">
-        <h2 style="color: var(--primary); letter-spacing: 1px;">KIMIA TRACK ADMIN</h2>
-        <div class="card">
-            <input type="password" id="admin-pass" placeholder="Code d'accès secret...">
-            <button class="btn" style="background: var(--primary); color: var(--bg);" onclick="verifierAcces()">CONNEXION SYSTÈME</button>
+    <div class="header">
+        <h2 id="page-title" style="color: var(--primary); margin: 0;">Recharge Portefeuille</h2>
+        <p id="page-subtitle" style="font-size: 13px; opacity: 0.7; margin-top: 5px;">Créditez votre compte pour activer vos requêtes</p>
+    </div>
+
+    <div id="section-demo" style="display: none;">
+        <div class="demo-gift-box">
+            <h3 style="color: var(--success); margin: 0 0 5px 0;">🎁 Cadeau de Bienvenue !</h3>
+            <p style="font-size: 14px; margin: 0;">Vous bénéficiez de <strong>3 SMS de tracking gratuits</strong> pour tester l'application immédiatement.</p>
         </div>
     </div>
 
-    <div id="main-dashboard" style="display: none;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-            <h3 style="margin:0; color: var(--primary);">Admin Panel</h3>
-            <span id="role-display" style="font-size:0.7rem; padding:4px 10px; border-radius:10px; background: var(--manager); color: white; font-weight: bold;"></span>
-        </div>
-
-        <div class="nav-tabs">
-            <div class="tab active" onclick="switchTab(0)">👥 Registre</div>
-            <div class="tab" onclick="switchTab(1)">💳 Crédits</div>
-            <div class="tab" onclick="switchTab(2)" id="tab-marketing">📢 Marketing</div>
-            <div class="tab" onclick="switchTab(3)">💰 Finances</div>
-            <div class="tab" onclick="switchTab(4)" id="tab-config">⚙️ Configuration</div>
-        </div>
-
-        <div id="sec-0" class="section active">
-            <div class="card">
-                <h4 style="margin-top:0;">Comptes Clients Détectés</h4>
-                <div style="overflow-x: auto;">
-                    <table id="table-inscrits">
-                        <thead>
-                            <tr>
-                                <th>WhatsApp N°</th>
-                                <th>Nom</th>
-                                <th>Solde</th>
-                                <th>SMS Restants</th>
-                                <th>Réseau</th>
-                                <th>Code Transaction</th>
-                                <th>Statut</th>
-                            </tr>
-                        </thead>
-                        <tbody id="body-inscrits">
-                            <tr><td colspan="7" style="text-align:center; color:gray;">Chargement des profils Supabase...</td></tr>
-                        </tbody>
-                    </table>
+    <div class="card" id="form-recharge">
+        <div id="section-gold-inputs">
+            <label>1. Montant de l'activation unique</label>
+            <input type="text" id="montant_recharge" value="5500 FC" readonly style="color: var(--accent); font-weight: bold;">
+            
+            <label style="margin-top: 10px; display: block;">2. Sélectionnez votre réseau Mobile Money</label>
+            <div class="network-grid">
+                <div class="network-btn active" onclick="changerReseau(this, 'Airtel Money')">
+                    <span class="airtel">🔴 Airtel</span> Money
+                </div>
+                <div class="network-btn" onclick="changerReseau(this, 'Orange Money')">
+                    <span class="orange">🟠 Orange</span> Money
+                </div>
+                <div class="network-btn" onclick="changerReseau(this, 'M-Pesa')">
+                    <span class="vodacom">🟢 M-Pesa</span> Vodacom
+                </div>
+                <div class="network-btn" onclick="changerReseau(this, 'Afrimoney')">
+                    <span class="africell"> 🟣 Afrimoney</span>
                 </div>
             </div>
-        </div>
 
-        <div id="sec-1" class="section">
-            <div class="card">
-                <h4 style="margin-top:0; color: var(--accent);">Ajustement des Portefeuilles</h4>
-                <div id="container-rubriques-credits"></div>
+            <div class="admin-instruction-box" id="instruction-admin">
+                Veuillez envoyer les 5500 FC au numéro Admin <span id="nom-reseau-txt">Airtel Money</span> :
+                <span class="admin-number" id="num-admin-txt">Chargement...</span>
             </div>
+
+            <label>3. Votre numéro Mobile Money (Débit)</label>
+            <input type="tel" id="numero_depot" placeholder="Ex: 08..." required>
+
+            <label>4. Code de transaction reçu par SMS</label>
+            <input type="text" id="code_transaction" placeholder="Ex: MP260518... ou TXN-..." required>
         </div>
 
-        <div id="sec-2" class="section">
-            <div class="card">
-                <h4>Campagne WhatsApp</h4>
-                <p style="font-size:0.7rem; color:gray;">Cibles : <span id="count-marketing">0</span> profils enregistrés en base.</p>
-                <textarea id="msg-marketing" rows="3" placeholder="Texte promotionnel ou note d'information globale..."></textarea>
-                
-                <label style="font-size:0.8rem; margin-top: 10px; display:block;">Attacher un visuel technique (Optionnel) :</label>
-                <input type="file" id="file-marketing" accept="image/*" onchange="previewFile()">
-                <img id="preview-img" src="">
-
-                <button class="btn" id="btn-diffuser" style="background: #25d366; color: white;" onclick="lancerMarketing()">DIFFUSER AUX UTILISATEURS</button>
-            </div>
-        </div>
-
-        <div id="sec-3" class="section">
-            <div class="card">
-                <h4 style="margin-top:0;">Bilan Financier Réel (FC)</h4>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
-                    <div class="stat-box" style="border-color: var(--primary);">
-                        <span style="font-size: 0.65rem; color: #94a3b8;">CA TOTAL (RECHARGES)</span>
-                        <div id="fin-ca-total" style="color: white; font-weight: bold; font-size: 1.1rem;">0 FC</div>
-                    </div>
-                    <div class="stat-box" style="border-color: var(--danger);">
-                        <span style="font-size: 0.65rem; color: #94a3b8;">FRAIS SMS FIXES</span>
-                        <div id="fin-couts-sms" style="color: var(--danger); font-weight: bold; font-size: 1.1rem;">0 FC</div>
-                    </div>
-                </div>
-
-                <div class="net-gain">
-                    <span style="font-size: 0.75rem; color: var(--success); font-weight: bold;">BÉNÉFICE ASSURÉ PLATFORM</span>
-                    <div id="fin-benefice" style="color: var(--success); font-weight: bold; font-size: 1.6rem;">0 FC</div>
-                </div>
-
-                <h5 style="font-size:0.8rem; margin: 15px 0 5px 0; color: #94a3b8;">Répartition estimative Mobile Money :</h5>
-                <div id="flux-reseaux" style="font-size: 0.75rem; background: #0f172a; padding: 10px; border-radius: 8px;"></div>
-
-                <button class="btn" style="background: var(--primary); color: #0f172a;" onclick="genererRapport()">📄 EXPORTER LE RAPPORT COMPLET</button>
-            </div>
-        </div>
-
-        <div id="sec-4" class="section">
-            <div class="card">
-                <h4 style="margin-top:0; color: var(--primary);">⚙️ Numéros Réception Mobile Money</h4>
-                <p style="font-size:0.75rem; color:gray; margin-bottom:15px;">Les numéros saisis ici changeront instantanément sur la page d'approvisionnement des clients.</p>
-                
-                <div class="config-group">
-                    <label style="color:#ff0000;">🔴 Numéro Admin Airtel Money</label>
-                    <input type="tel" id="cfg-airtel" placeholder="Ex: 099...">
-                </div>
-                <div class="config-group">
-                    <label style="color:#ff6600;">🟠 Numéro Admin Orange Money</label>
-                    <input type="tel" id="cfg-orange" placeholder="Ex: 089...">
-                </div>
-                <div class="config-group">
-                    <label style="color:#4ade80;">🟢 Numéro Admin M-Pesa (Vodacom)</label>
-                    <input type="tel" id="cfg-vodacom" placeholder="Ex: 081...">
-                </div>
-                <div class="config-group">
-                    <label style="color:#c084fc;">🟣 Numéro Admin Afrimoney (Africell)</label>
-                    <input type="tel" id="cfg-africell" placeholder="Ex: 090...">
-                </div>
-
-                <button class="btn" id="btn-save-config" style="background: var(--primary); color: var(--bg);" onclick="sauvegarderConfigurationAdmin()">METTRE À JOUR LES NUMÉROS ADMIN</button>
-            </div>
-        </div>
-
-        <button class="btn" style="background: #334155; margin-top: 10px;" onclick="location.reload()">DÉCONNEXION DU POSTE</button>
+        <button class="btn-pay" id="btn-submit-pay" onclick="finaliserEtEnregistrer()">VALIDER ET CRÉER MON COMPTE</button>
     </div>
+
+    <a href="inscription.html" class="btn-back">← Retour à l'inscription</a>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
-        // Déclaration globale sécurisée
-        let clientSupabase;
-        let currentRole = "";
-        let listeProfilsGlobaux = [];
-        const COUT_SMS_FIXE = 1500; 
+        const SUPABASE_URL = "https://ufwirghypzowlmeqqgco.supabase.co";
+        const SUPABASE_KEY = "sb_publishable_ZMjol0IAFBrmaZULUzR7IA_Gk31Msqq";
+        const clientSupabase = Supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        // Initialisation immédiate blindée
-        try {
-            const SUPABASE_URL = "https://ufwirghypzowlmeqqgco.supabase.co";
-            const SUPABASE_KEY = "sb_publishable_ZMjol0IAFBrmaZULUzR7IA_Gk31Msqq";
-            clientSupabase = Supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-        } catch(e) {
-            alert("❌ Erreur critique d'initialisation de la bibliothèque Supabase :\n" + e.message);
-        }
+        let reseauSelectionne = "Airtel Money";
+        let modeAcces = "GOLD"; 
 
-        function verifierAcces() {
-            try {
-                const pass = document.getElementById('admin-pass').value.trim();
-                
-                if (pass === "KIMBANGU0") currentRole = "TOP_MANAGER";
-                else if (pass === "Christine0") currentRole = "GESTIONNAIRE";
-                else if (pass === "Renathes1") currentRole = "COMPTABILITE";
-                else {
-                    alert("Accès refusé : Code de sécurité invalide.");
-                    return;
-                }
+        // Numéros admins de secours par défaut au cas où la table configuration est vide ou introuvable
+        let numerosAdmin = {
+            "Airtel Money": "0991662996",
+            "Orange Money": "0896005700",
+            "M-Pesa": "0815152026",
+            "Afrimoney": "0904003002"
+        };
 
-                document.getElementById('role-display').innerText = currentRole;
-                document.getElementById('login-screen').style.display = "none";
-                document.getElementById('main-dashboard').style.display = "block";
+        // Récupération des données temporaires de l'étape précédente
+        let tempNom = localStorage.getItem('kt_user_nom');
+        let tempTel = localStorage.getItem('kt_user_tel');
 
-                if (currentRole === "COMPTABILITE") {
-                    document.getElementById('tab-marketing').style.display = "none";
-                    document.getElementById('tab-config').style.display = "none";
-                    document.getElementById('btn-diffuser').disabled = true;
-                }
-
-                // Lancement sécurisé du chargement
-                chargerDonneesSupabase();
-                if (currentRole !== "COMPTABILITE") {
-                    chargerConfigurationDansFormulaire();
-                }
-
-            } catch (err) {
-                alert("🚨 CRASH DANS verifierAcces :\n" + err.message + "\n\nDétails : " + err.stack);
+        window.onload = async function() {
+            // Détection du pack choisi dans l'URL (?pack=demo ou via le session_id généré)
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('pack') === 'demo' || localStorage.getItem('kt_session_id')?.startsWith('DEMO-')) {
+                modeAcces = "DEMO";
+                configurerModeDemo();
             }
-        }
 
-        async function chargerDonneesSupabase() {
-            const body = document.getElementById('body-inscrits');
-            const containerCredits = document.getElementById('container-rubriques-credits');
-            
+            // Pré-remplissage du numéro de téléphone s'il existe dans le cache local
+            if (tempTel) {
+                const inputDepot = document.getElementById('numero_depot');
+                if (inputDepot) inputDepot.value = tempTel;
+            }
+
+            // Si c'est un Pack Gold, on télécharge dynamiquement les numéros admins depuis Supabase
+            if (modeAcces === "GOLD") {
+                await chargerNumerosAdminDepuisSupabase();
+            }
+        };
+
+        // Téléchargement des configurations en temps réel depuis l'espace admin (table : configuration)
+        async function chargerNumerosAdminDepuisSupabase() {
             try {
-                if (!clientSupabase) {
-                    body.innerHTML = "<tr><td colspan='7' style='color:var(--danger);'>Supabase non initialisé.</td></tr>";
-                    return;
-                }
-
-                const { data: profils, error } = await clientSupabase
-                    .from('profils')
-                    .select('*')
-                    .order('created_at', { ascending: false });
+                const { data, error } = await clientSupabase
+                    .from('configuration')
+                    .select('cle, valeur');
 
                 if (error) throw error;
 
-                listeProfilsGlobaux = profils || [];
-                document.getElementById('count-marketing').innerText = listeProfilsGlobaux.length;
-
-                if (listeProfilsGlobaux.length === 0) {
-                    body.innerHTML = "<tr><td colspan='7' style='text-align:center;'>Aucun compte sur le réseau.</td></tr>";
-                    containerCredits.innerHTML = "<p style='color:gray;'>Aucun portefeuille à modifier.</p>";
-                    calculerFinances(0);
-                    return;
-                }
-
-                body.innerHTML = "";
-                containerCredits.innerHTML = "";
-                let caCumule = 0;
-
-                listeProfilsGlobaux.forEach((profil) => {
-                    const solde = parseInt(profil.solde_fc) || 0;
-                    caCumule += solde;
-                    
-                    const statut = profil.statut_compte || (solde >= 5500 ? "GOLD" : "DEMO");
-                    const colorStatut = statut === "GOLD" ? "var(--accent)" : "var(--primary)";
-                    const numSms = profil.sms_tracking_restants !== undefined ? profil.sms_tracking_restants : "-";
-                    const codeTx = profil.code_transaction_activation || "Aucun";
-                    const network = profil.reseau_paiement || "Non spécifié";
-                    const nomUser = profil.nom || "Anonyme";
-
-                    body.innerHTML += `
-                        <tr>
-                            <td><b>${profil.whatsapp_num}</b></td>
-                            <td>${nomUser}</td>
-                            <td style="color: var(--accent); font-weight:bold;">${solde.toLocaleString()} FC</td>
-                            <td style="text-align:center;">${numSms}</td>
-                            <td>${network}</td>
-                            <td style="font-family:monospace; color:#94a3b8;">${codeTx}</td>
-                            <td style="color:${colorStatut}; font-weight:bold; font-size:10px;">🟢 ${statut}</td>
-                        </tr>`;
-
-                    const restrictionCompta = currentRole === "COMPTABILITE" ? "disabled" : "";
-                    containerCredits.innerHTML += `
-                        <div class="rubrique-credit">
-                            <span>Utilisateur : <b>${profil.whatsapp_num} (${nomUser})</b></span><br>
-                            <small style="color:var(--accent);">Solde Actuel : ${solde.toLocaleString()} FC | SMS Restants : ${numSms}</small>
-                            <div style="display:flex; gap:5px; margin-top:8px;">
-                                <input type="number" id="inp-${profil.id}" value="5500" placeholder="Montant en FC" ${restrictionCompta}>
-                                <button class="btn-acc" onclick="crediterCompteSupabase('${profil.id}', '${profil.whatsapp_num}')" ${restrictionCompta}>AJOUTER</button>
-                            </div>
-                        </div>`;
-                });
-
-                calculerFinances(caCumule);
-
-            } catch (err) {
-                alert("🚨 ERREUR DANS chargerDonneesSupabase :\n" + err.message);
-                body.innerHTML = "<tr><td colspan='7' style='color:var(--danger);'>Erreur réseau de synchronisation.</td></tr>";
-            }
-        }
-
-        function calculerFinances(caTotal) {
-            try {
-                const nbUtilisateursActifs = listeProfilsGlobaux.filter(p => (p.solde_fc || 0) > 0 || p.statut_compte === "GOLD").length;
-                const coutsSms = nbUtilisateursActifs * COUT_SMS_FIXE; 
-                const benefice = caTotal - coutsSms;
-
-                document.getElementById('fin-ca-total').innerText = caTotal.toLocaleString() + " FC";
-                document.getElementById('fin-couts-sms').innerText = coutsSms.toLocaleString() + " FC";
-                document.getElementById('fin-benefice').innerText = (benefice > 0 ? "+ " : "") + benefice.toLocaleString() + " FC";
-
-                const allocations = [
-                    { nom: "M-Pesa (Vodacom)", color: "#4ade80", ratio: 0.40 },
-                    { nom: "Airtel Money", color: "#ff0000", ratio: 0.30 },
-                    { nom: "Orange Money", color: "#ff6600", ratio: 0.20 },
-                    { nom: "Afrimoney (Africell)", color: "#c084fc", ratio: 0.10 }
-                ];
-                
-                let htmlRes = "";
-                allocations.forEach(res => {
-                    const part = Math.floor(caTotal * res.ratio);
-                    htmlRes += `
-                        <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
-                            <span><span style="color:${res.color}">●</span> ${res.nom}</span>
-                            <b>${part.toLocaleString()} FC</b>
-                        </div>`;
-                });
-                document.getElementById('flux-reseaux').innerHTML = htmlRes;
-            } catch(e) {
-                console.error("Erreur calcul financier :", e.message);
-            }
-        }
-
-        async function chargerConfigurationDansFormulaire() {
-            try {
-                if (!clientSupabase) return;
-                const { data, error } = await clientSupabase.from('configuration').select('*');
-                if (error) throw error;
-                if (data) {
-                    data.forEach(item => {
-                        if (item.cle === 'admin_airtel') document.getElementById('cfg-airtel').value = item.valeur;
-                        if (item.cle === 'admin_orange') document.getElementById('cfg-orange').value = item.valeur;
-                        if (item.cle === 'admin_vodacom') document.getElementById('cfg-vodacom').value = item.valeur;
-                        if (item.cle === 'admin_africell') document.getElementById('cfg-africell').value = item.valeur;
+                if (data && data.length > 0) {
+                    data.forEach(param => {
+                        if (param.cle === 'admin_airtel') numerosAdmin["Airtel Money"] = param.valeur;
+                        if (param.cle === 'admin_orange') numerosAdmin["Orange Money"] = param.valeur;
+                        if (param.cle === 'admin_vodacom') numerosAdmin["M-Pesa"] = param.valeur;
+                        if (param.cle === 'admin_africell') numerosAdmin["Afrimoney"] = param.valeur;
                     });
                 }
             } catch (err) {
-                alert("🚨 IMPOSSIBLE DE CHARGER LES NUMÉROS ADMIN DEPUIS SUPABASE :\n" + err.message);
-            }
-        }
-
-        async function sauvegarderConfigurationAdmin() {
-            try {
-                const btn = document.getElementById('btn-save-config');
-                btn.disabled = true;
-                btn.innerText = "⏳ ENREGISTREMENT...";
-
-                const configs = [
-                    { cle: 'admin_airtel', valeur: document.getElementById('cfg-airtel').value.trim() },
-                    { cle: 'admin_orange', valeur: document.getElementById('cfg-orange').value.trim() },
-                    { cle: 'admin_vodacom', valeur: document.getElementById('cfg-vodacom').value.trim() },
-                    { cle: 'admin_africell', valeur: document.getElementById('cfg-africell').value.trim() }
-                ];
-
-                const { error } = await clientSupabase
-                    .from('configuration')
-                    .upsert(configs, { onConflict: 'cle' });
-
-                if (error) throw error;
-                alert("⚙️ Configuration enregistrée avec succès !");
-            } catch (err) {
-                alert("Erreur de sauvegarde : " + err.message);
+                console.error("Mode de secours activé (numéros par défaut utilisés) :", err.message);
             } finally {
-                document.getElementById('btn-save-config').disabled = false;
-                document.getElementById('btn-save-config').innerText = "METTRE À JOUR LES NUMÉROS ADMIN";
+                // Met à jour l'affichage avec le numéro final extrait
+                document.getElementById('num-admin-txt').innerText = numerosAdmin[reseauSelectionne];
             }
         }
 
-        async function crediterCompteSupabase(profilId, whatsappNum) {
+        function configurerModeDemo() {
+            document.getElementById('page-title').innerText = "Activation Compte Démo";
+            document.getElementById('page-subtitle').innerText = "Initialisation de vos accès gratuits";
+            document.getElementById('section-demo').style.display = "block";
+            document.getElementById('section-gold-inputs').style.display = "none";
+            document.getElementById('btn-submit-pay').innerText = "RECEVOIR MON CADEAU & M'ACTIVER";
+            document.getElementById('btn-submit-pay').style.background = "var(--primary)";
+        }
+
+        function changerReseau(element, name) {
+            document.querySelectorAll('.network-btn').forEach(btn => btn.classList.remove('active'));
+            element.classList.add('active');
+            reseauSelectionne = name;
+            
+            document.getElementById('nom-reseau-txt').innerText = name;
+            document.getElementById('num-admin-txt').innerText = numerosAdmin[name];
+        }
+
+        async function finaliserEtEnregistrer() {
+            const btn = document.getElementById('btn-submit-pay');
+            
+            if (!tempTel || !tempNom) {
+                alert("Erreur : Données d'inscription manquantes. Veuillez recommencer.");
+                window.location.href = 'inscription.html';
+                return;
+            }
+
+            let codeTxn = "CADEAU-DEMO";
+            let soldeInitial = 0;
+            let smsCadeau = 0;
+
+            if (modeAcces === "GOLD") {
+                const numDepot = document.getElementById('numero_depot').value.trim();
+                codeTxn = document.getElementById('code_transaction').value.trim();
+
+                if (!numDepot || !codeTxn) {
+                    alert("Veuillez renseigner votre numéro de débit ainsi que le code de transaction SMS.");
+                    return;
+                }
+                soldeInitial = 5500; 
+            } else {
+                smsCadeau = 3; 
+            }
+
+            btn.disabled = true;
+            btn.innerText = "⌛ ENREGISTREMENT DANS SUPABASE...";
+
             try {
-                const montantSaisi = document.getElementById(`inp-${profilId}`).value;
-                if(!montantSaisi || parseInt(montantSaisi) <= 0) return alert("Saisissez un montant valide.");
-
-                const ajout = parseInt(montantSaisi);
-                const profilCourant = listeProfilsGlobaux.find(p => p.id === profilId);
-                const ancienSolde = profilCourant ? (parseInt(profilCourant.solde_fc) || 0) : 0;
-                const nouveauSolde = ancienSolde + ajout;
-
+                // CRÉATION ET ENREGISTREMENT DU PROFIL DE L'UTILISATEUR
                 const { error } = await clientSupabase
                     .from('profils')
-                    .update({ solde_fc: nouveauSolde, statut_compte: 'GOLD' }) 
-                    .eq('id', profilId);
+                    .insert([{
+                        whatsapp_num: tempTel,
+                        nom: tempNom,
+                        solde_fc: soldeInitial,
+                        sms_tracking_restants: smsCadeau, 
+                        code_transaction_activation: codeTxn,
+                        reseau_paiement: modeAcces === "GOLD" ? reseauSelectionne : "DEMO",
+                        statut_compte: modeAcces
+                    }]);
 
                 if (error) throw error;
 
-                alert(`Portefeuille mis à jour.\nNouveau solde : ${nouveauSolde.toLocaleString()} FC.`);
-                chargerDonneesSupabase();
+                // Mise à jour de la mémoire locale du téléphone
+                localStorage.setItem('kt_solde_global', soldeInitial);
+                localStorage.setItem('kt_sms_demo', smsCadeau);
+                localStorage.setItem('kt_auth_status', 'registered');
+
+                if (modeAcces === "GOLD") {
+                    alert(`✅ Inscription validée !\nCode de transaction soumis : ${codeTxn}.\nVotre accès sera activé après vérification.`);
+                } else {
+                    alert("✅ Compte Démo créé !\nVos 3 SMS de tracking gratuits ont été crédités.");
+                }
+                
+                // Redirection directe vers la page d'identification devenue fonctionnelle
+                window.location.href = "identification.html";
 
             } catch (err) {
-                alert("Erreur lors de l'application du crédit : " + err.message);
+                console.error(err);
+                alert("Erreur d'enregistrement dans la base de données : " + err.message);
+                btn.disabled = false;
+                btn.innerText = modeAcces === "GOLD" ? "VALIDER ET CRÉER MON COMPTE" : "RECEVOIR MON CADEAU & M'ACTIVER";
             }
-        }
-
-        function previewFile() {
-            const preview = document.getElementById('preview-img');
-            const file = document.getElementById('file-marketing').files[0];
-            const reader = new FileReader();
-            reader.onloadend = () => { preview.src = reader.result; preview.style.display = "block"; }
-            if (file) reader.readAsDataURL(file);
-        }
-
-        function lancerMarketing() {
-            const msg = document.getElementById('msg-marketing').value;
-            if(!msg) return alert("Veuillez saisir un texte de diffusion.");
-            if(listeProfilsGlobaux.length === 0) return alert("Aucun destinataire disponible.");
-            
-            const premierTel = listeProfilsGlobaux[0].whatsapp_num;
-            window.open(`https://wa.me/${premierTel}?text=${encodeURIComponent(msg)}`, '_blank');
-        }
-
-        function genererRapport() {
-            const ca = document.getElementById('fin-ca-total').innerText;
-            const frais = document.getElementById('fin-couts-sms').innerText;
-            const gain = document.getElementById('fin-benefice').innerText;
-            const date = new Date().toLocaleDateString('fr-FR');
-            
-            const rapport = `=== RAPPORT FINANCIER CENTRAL SATELLITE ===\nDate d'édition : ${date}\nOpérateur certifié : ${currentRole}\n---------------------------------------\nCHIFFRE D'AFFAIRES CUMULÉ : ${ca}\nCHARGES ROUTAGE SMS & SIGNAL : ${frais}\n---------------------------------------\nSOLDE NET DE LA COMPAGNIE : ${gain}\n=======================================\nStatut d'archivage : Prêt pour validation comptable.`;
-            
-            alert(rapport);
-        }
-
-        function switchTab(i) {
-            document.querySelectorAll('.section').forEach((s, idx) => s.classList.toggle('active', i === idx));
-            document.querySelectorAll('.tab').forEach((t, idx) => t.toggle('active', i === idx));
         }
     </script>
 </body>
