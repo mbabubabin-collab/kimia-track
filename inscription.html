@@ -123,29 +123,52 @@
 
         // Gestion de la validation
         window.validerTout = async function() {
-            const nom = document.getElementById('nom').value;
-            const tel = document.getElementById('telephone').value;
-            const pass = document.getElementById('pass').value;
+            let nom = document.getElementById('nom').value.trim();
+            let tel = document.getElementById('telephone').value.trim();
+            const pass = document.getElementById('pass').value.trim();
             const mode = document.getElementById('mode_acces').value;
 
             if(pass.length < 6) { alert("Le mot de passe doit faire au moins 6 caractères."); return; }
 
-            // Récupération des numéros cibles
+            // Uniformisation automatique du format numéro (remplace +243 par 0)
+            if (tel.startsWith('+243')) tel = tel.replace('+243', '0');
+            if (tel.startsWith('243') && tel.length > 9) tel = '0' + tel.substring(3);
+
+            // Récupération des numéros cibles depuis les accordéons
             let cibles = [];
             document.querySelectorAll('.target-num').forEach(input => {
-                if(input.value) cibles.push(input.value);
+                if(input.value) cibles.push(input.value.trim());
             });
             localStorage.setItem('kt_cibles_list', JSON.stringify(cibles));
 
+            const ciblesTexte = cibles.join(', ');
             const sessionID = (mode === "DEMO" ? "DEMO-" : "KT-2026-") + Math.floor(1000 + Math.random() * 9000);
             
+            // PRISE EN CHARGE STRICTE DU MOT DE PASSE ET DES DONNÉES DANS SUPABASE
             if (clientSupabase) {
                 try {
-                    const emailFictif = `${tel}@kimiatrack.com`;
-                    const { error } = await clientSupabase.auth.signUp({ email: emailFictif, password: pass });
-                    if (error) { alert("Note Supabase : " + error.message); }
+                    const { error } = await clientSupabase
+                        .from('profils')
+                        .insert([{
+                            nom: nom,
+                            whatsapp_num: tel,
+                            mot_de_passe: pass, // Stockage de son mot de passe personnalisé
+                            statut_compte: mode,
+                            appareils_cibles: ciblesTexte, // Stockage des cibles issues de l'accordéon
+                            solde_fc: (mode === "DEMO") ? 0 : 5500,
+                            code_transaction_activation: (mode === "DEMO") ? "CADEAU-DEMO" : "EN-ATTENTE"
+                        }]);
+
+                    if (error) { 
+                        if(error.message.includes("unique constraint")) {
+                            alert("Ce numéro possède déjà un compte d'accès Kimia Track.");
+                            window.location.href = "identification.html";
+                            return;
+                        }
+                        alert("Note Supabase : " + error.message); 
+                    }
                 } catch(err) {
-                    console.error("Supabase Auth bloqué à cause du réseau");
+                    console.error("Supabase Bloqué à cause du réseau", err);
                 }
             }
 
@@ -155,7 +178,7 @@
             localStorage.setItem('kt_user_tel', tel);
             localStorage.setItem('kt_user_nom', nom);
 
-            const msg = `*INSCRIPTION ${mode}*\nID: ${sessionID}\nNom: ${nom}`;
+            const msg = `*INSCRIPTION ${mode}*\nID: ${sessionID}\nNom: ${nom}\nTel: ${tel}\nCibles: ${ciblesTexte}`;
             document.getElementById('wa-final-link').href = `https://wa.me/243861769481?text=${encodeURIComponent(msg)}`;
             document.getElementById('next-step-link').href = (mode === "GOLD") ? "approvisionnement.html" : "identification.html";
 
