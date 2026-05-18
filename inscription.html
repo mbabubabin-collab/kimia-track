@@ -81,8 +81,8 @@
         const SUPABASE_URL = "https://ufwirghypzowlmeqqgco.supabase.co";
         const SUPABASE_KEY = "sb_publishable_ZMjol0IAFBrmaZULUzR7IA_Gk31Msqq";
         
-        // Initialisation globale pour la page d'inscription
-        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        // CORRECTION : Initialisation via l'objet global du CDN (Supabase avec Majuscule)
+        const clientSupabase = Supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
         // Fonction pour générer dynamiquement les champs d'appareils cibles
         window.genererBlocsAppareils = function() {
@@ -118,7 +118,8 @@
                 // Création du compte utilisateur dans Supabase Auth
                 const emailFictif = `${tel}@kimiatrack.com`;
                 
-                const { data, error } = await supabase.auth.signUp({
+                // CORRECTION : Utilisation de la bonne variable clientSupabase
+                const { data, error } = await clientSupabase.auth.signUp({
                     email: emailFictif,
                     password: pass
                 });
