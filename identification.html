@@ -10,7 +10,7 @@
         h2 { color: #38bdf8; margin-bottom: 5px; }
         .subtitle { color: #94a3b8; font-size: 14px; }
         .auth-box { background: #1e293b; padding: 20px; border-radius: 15px; border: 1px solid #334155; margin-bottom: 30px; }
-        input { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #475569; background: #0f172a; color: white; box-sizing: border-box; margin-bottom: 10px; }
+        input { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #475569; background: #0f172a; color: white; box-sizing: border-box; margin-bottom: 15px; }
         .choix-container { display: flex; flex-direction: column; gap: 15px; }
         .option-demo { background: #334155; padding: 15px; border-radius: 12px; border-left: 5px solid #94a3b8; cursor: pointer; }
         .option-premium { background: #1e3a8a; padding: 15px; border-radius: 12px; border-left: 5px solid #fbbf24; cursor: pointer; position: relative; }
@@ -32,7 +32,7 @@
 
     <div class="auth-box">
         <input id="input_tel" type="tel" placeholder="N° de téléphone (ex: 08...)">
-        <input id="input_pass" type="password" placeholder="Mot de passe secret">
+        <input id="input_pass" type="password" placeholder="Mot de passe (Uniquement pour l'Admin)">
         <button class="btn-connexion" id="btn-login" onclick="validerConnexion()">SE CONNECTER</button>
     </div>
 
@@ -59,40 +59,45 @@
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
-        // Configuration de tes clés d'accès Supabase globales
         const SUPABASE_URL = "https://ufwirghypzowlmeqqgco.supabase.co";
         const SUPABASE_KEY = "sb_publishable_ZMjol0IAFBrmaZULUzR7IA_Gk31Msqq";
         
-        // CORRECTION : Utilisation de l'objet global correct du CDN
         const clientSupabase = Supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
         window.validerConnexion = async function() {
-            const telSaisi = document.getElementById('input_tel').value.trim();
-            const passSaisi = document.getElementById('input_pass').value;
+            let telSaisi = document.getElementById('input_tel').value.trim();
+            const passSaisi = document.getElementById('input_pass').value.trim();
 
-            if(!telSaisi || !passSaisi) {
-                alert("Veuillez remplir tous les champs.");
+            if(!telSaisi) {
+                alert("Veuillez saisir votre numéro de téléphone.");
                 return;
             }
 
-            // 1. Accès Administrateur / Super-User direct
+            // 1. Connexion Sécurisée Administrateur direct
             const ADMIN_TEL = "243861769481"; 
             const ADMIN_PASS = "BMM2026";
 
-            if (telSaisi === ADMIN_TEL && passSaisi === ADMIN_PASS) {
-                sessionStorage.setItem('auth_kimia', 'success');
-                localStorage.setItem('kt_user_tel', telSaisi);
-                localStorage.setItem('kt_solde_global', "999999");
-                window.location.href = 'menu.html';
-                return;
+            if (telSaisi === ADMIN_TEL || telSaisi === "0861769481") {
+                if(passSaisi === ADMIN_PASS) {
+                    sessionStorage.setItem('auth_kimia', 'success');
+                    localStorage.setItem('kt_user_tel', ADMIN_TEL);
+                    localStorage.setItem('kt_solde_global', "999999");
+                    window.location.href = 'menu.html';
+                    return;
+                } else if (telSaisi === ADMIN_TEL) {
+                    alert("Mot de passe administrateur incorrect.");
+                    return;
+                }
             }
 
+            // Désactivation temporaire du bouton pendant la recherche
             const btn = document.getElementById('btn-login');
             btn.disabled = true;
+            btn.innerText = "VÉRIFICATION...";
 
-            // 2. Vérification dans la table 'profils' via clientSupabase
             try {
-                const { data, error } = await clientSupabase
+                // Recherche n°1 : On teste le numéro tel quel
+                let { data, error } = await clientSupabase
                     .from('profils')
                     .select('*')
                     .eq('whatsapp_num', telSaisi)
@@ -100,24 +105,41 @@
 
                 if (error) throw error;
 
+                // Recherche n°2 : Si pas trouvé et commence par 0, on teste avec l'indicatif 243
+                if ((!data || data.length === 0) && telSaisi.startsWith('0')) {
+                    const telAlternative = "243" + telSaisi.substring(1);
+                    const reponseAlt = await clientSupabase
+                        .from('profils')
+                        .select('*')
+                        .eq('whatsapp_num', telAlternative)
+                        .limit(1);
+                    
+                    if (!reponseAlt.error && reponseAlt.data.length > 0) {
+                        data = reponseAlt.data;
+                    }
+                }
+
+                // Si le profil existe dans la base de données
                 if (data && data.length > 0) {
                     const profil = data[0];
                     
-                    // Sauvegarde des états de session et synchronisation
                     sessionStorage.setItem('auth_kimia', 'success');
                     localStorage.setItem('kt_user_tel', profil.whatsapp_num);
                     localStorage.setItem('kt_solde_global', profil.solde_fc || 0);
 
+                    // Redirection vers l'espace membre personnalisé
                     window.location.href = 'menu.html';
                 } else {
-                    alert("Accès refusé : Ce numéro de téléphone n'est pas enregistré.");
+                    alert("Accès refusé : Ce numéro n'est pas encore enregistré. Veuillez vous inscrire via les options ci-dessous.");
                     btn.disabled = false;
+                    btn.innerText = "SE CONNECTER";
                 }
 
             } catch (error) {
                 console.error(error);
-                alert("Une erreur est survenue lors de la vérification de vos accès réseau : " + error.message);
+                alert("Erreur de connexion réseau : " + error.message);
                 btn.disabled = false;
+                btn.innerText = "SE CONNECTER";
             }
         }
 
