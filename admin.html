@@ -157,25 +157,38 @@
         <button class="btn" style="background: #334155; margin-top: 10px;" onclick="location.reload()">DÉCONNEXION DU POSTE</button>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.43.4/dist/umd/supabase.js"></script>
     <script>
-        // Déclaration globale sécurisée
+        // Déclarations globales stables
         let clientSupabase;
         let currentRole = "";
         let listeProfilsGlobaux = [];
         const COUT_SMS_FIXE = 1500; 
 
-        // Initialisation immédiate blindée
-        try {
-            const SUPABASE_URL = "https://ufwirghypzowlmeqqgco.supabase.co";
-            const SUPABASE_KEY = "sb_publishable_ZMjol0IAFBrmaZULUzR7IA_Gk31Msqq";
-            clientSupabase = Supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-        } catch(e) {
-            alert("❌ Erreur critique d'initialisation de la bibliothèque Supabase :\n" + e.message);
-        }
+        // Initialisation asynchrone sécurisée par DOMContentLoaded
+        window.addEventListener('DOMContentLoaded', () => {
+            try {
+                const SUPABASE_URL = "https://ufwirghypzowlmeqqgco.supabase.co";
+                const SUPABASE_KEY = "sb_publishable_ZMjol0IAFBrmaZULUzR7IA_Gk31Msqq";
+                
+                if (window.supabase) {
+                    clientSupabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+                } else if (typeof Supabase !== 'undefined') {
+                    clientSupabase = Supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+                } else {
+                    alert("❌ Échec de liaison : La bibliothèque externe Supabase n'est pas accessible.");
+                }
+            } catch(e) {
+                alert("❌ Erreur d'initialisation de l'instance Supabase :\n" + e.message);
+            }
+        });
 
         function verifierAcces() {
             try {
+                if (!clientSupabase) {
+                    alert("⚠️ Le module Supabase est en cours de synchronisation. Patientez une seconde ou actualisez la page.");
+                    return;
+                }
                 const pass = document.getElementById('admin-pass').value.trim();
                 
                 if (pass === "KIMBANGU0") currentRole = "TOP_MANAGER";
@@ -196,14 +209,13 @@
                     document.getElementById('btn-diffuser').disabled = true;
                 }
 
-                // Lancement sécurisé du chargement
                 chargerDonneesSupabase();
                 if (currentRole !== "COMPTABILITE") {
                     chargerConfigurationDansFormulaire();
                 }
 
             } catch (err) {
-                alert("🚨 CRASH DANS verifierAcces :\n" + err.message + "\n\nDétails : " + err.stack);
+                alert("🚨 CRASH DANS verifierAcces :\n" + err.message);
             }
         }
 
@@ -280,6 +292,11 @@
             }
         }
 
+        function calcularFinances(caTotal) {
+            // Maintenu uniquement pour compatibilité de signature interne (sans récursion infinie)
+            return;
+        }
+
         function calculerFinances(caTotal) {
             try {
                 const nbUtilisateursActifs = listeProfilsGlobaux.filter(p => (p.solde_fc || 0) > 0 || p.statut_compte === "GOLD").length;
@@ -332,6 +349,7 @@
 
         async function sauvegarderConfigurationAdmin() {
             try {
+                if (!clientSupabase) throw new Error("Le client Supabase n'est pas initialisé.");
                 const btn = document.getElementById('btn-save-config');
                 btn.disabled = true;
                 btn.innerText = "⏳ ENREGISTREMENT...";
@@ -343,11 +361,15 @@
                     { cle: 'admin_africell', valeur: document.getElementById('cfg-africell').value.trim() }
                 ];
 
-                const { error } = await clientSupabase
-                    .from('configuration')
-                    .upsert(configs, { onConflict: 'cle' });
+                // Exécution des requêtes d'insertion/mise à jour sécurisées
+                for (const item of configs) {
+                    const { error } = await clientSupabase
+                        .from('configuration')
+                        .upsert(item, { onConflict: 'cle' });
+                    
+                    if (error) throw error;
+                }
 
-                if (error) throw error;
                 alert("⚙️ Configuration enregistrée avec succès !");
             } catch (err) {
                 alert("Erreur de sauvegarde : " + err.message);
@@ -359,6 +381,7 @@
 
         async function crediterCompteSupabase(profilId, whatsappNum) {
             try {
+                if (!clientSupabase) throw new Error("Le client Supabase n'est pas initialisé.");
                 const montantSaisi = document.getElementById(`inp-${profilId}`).value;
                 if(!montantSaisi || parseInt(montantSaisi) <= 0) return alert("Saisissez un montant valide.");
 
