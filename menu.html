@@ -16,6 +16,13 @@
         .session-info { font-size: 11px; color: var(--primary); letter-spacing: 1px; }
         .user-name { font-weight: bold; font-size: 18px; color: white; }
 
+        /* Formulaire d'ajout rapide (Intégré sans casser le design) */
+        .add-target-box { background: var(--card); border: 1px dashed #475569; border-radius: 12px; padding: 15px; margin-bottom: 25px; }
+        .add-target-box h3 { margin: 0 0 10px 0; font-size: 14px; color: var(--primary); }
+        .add-inputs { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+        .add-inputs input { background: #0f172a; border: 1px solid #334155; border-radius: 6px; padding: 10px; color: white; font-size: 13px; }
+        .btn-add-submit { background: var(--primary); color: #0f172a; border: none; padding: 10px; border-radius: 6px; font-weight: bold; cursor: pointer; width: 100%; font-size: 13px; }
+
         /* Grille des Cibles Individualisées */
         .target-grid { display: flex; flex-direction: column; gap: 20px; }
         .target-card { background: var(--card); border-radius: 16px; border: 1px solid #334155; overflow: hidden; position: relative; }
@@ -62,6 +69,15 @@
         </div>
     </div>
 
+    <div class="add-target-box">
+        <h3>📡 Ajouter un nouveau terminal à suivre</h3>
+        <div class="add-inputs">
+            <input type="text" id="nom_cible" placeholder="Nom (Ex: Ma Voiture)">
+            <input type="tel" id="telephone_cible" placeholder="N° de téléphone">
+        </div>
+        <button class="btn-add-submit" onclick="ajouterCible()">ENREGISTRER LA CIBLE</button>
+    </div>
+
     <div class="target-grid" id="target-container">
         <div style="text-align:center; padding:40px; color:#64748b; font-style:italic;">Recherche et synchronisation des relais satellites...</div>
     </div>
@@ -76,62 +92,68 @@
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
-        // Configuration de tes clés d'accès Supabase globales
         const SUPABASE_URL = "https://ufwirghypzowlmeqqgco.supabase.co";
         const SUPABASE_KEY = "sb_publishable_ZMjol0IAFBrmaZULUzR7IA_Gk31Msqq";
         
-        // CORRECTION DE LIAISON : Pointage via le namespace supabasejs complet pour l'accès CDN
-        const supabase = supabase.supabasejs.createClient(SUPABASE_URL, SUPABASE_KEY);
-
+        let supabase;
         const userTel = localStorage.getItem('kt_user_tel');
-        const authCheck = sessionStorage.getItem('auth_kimia');
+        
+        // Correction de l'instanciation de Supabase pour éviter les crashs sur mobile
+        if (typeof supabase !== 'undefined') {
+            supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        } else if (typeof Supabase !== 'undefined') {
+            supabase = Supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        }
 
-        // Sécurité d'accès locale immédiate
-        if (authCheck !== 'success' || !userTel) {
+        // Sécurité de session locale
+        if (!userTel) {
             window.location.href = 'identification.html';
         }
 
         window.onload = async function() {
-            // Configuration visuelle d'en-tête depuis le stockage local temporaire
             const sessionID = localStorage.getItem('kt_session_id') || "KT-2026-" + Math.floor(1000 + Math.random() * 9000);
             const soldeCache = localStorage.getItem('kt_solde_global') || "0";
             
             document.getElementById('session-id').innerText = sessionID;
-            document.getElementById('user-name').innerText = userTel === "243861769481" ? "Administrateur" : "Utilisateur KT";
+            document.getElementById('user-name').innerText = userTel === "0861769481" ? "Administrateur" : "Utilisateur KT";
             
             const mode = parseInt(soldeCache) >= 5500 ? "GOLD" : "DEMO";
             document.getElementById('account-status').innerText = mode;
 
-            // Chargement des terminaux cibles réels depuis la table Supabase 'cibles'
-            await chargerCiblesSupabase(mode, sessionID, soldeCache);
+            if (supabase) {
+                await chargerCiblesSupabase(mode, soldeCache);
+            }
         };
 
-        async function chargerCiblesSupabase(mode, sessionID, soldeCache) {
+        // CHARGEMENT INDIVIDUALISÉ DES CIBLES
+        async function chargerCiblesSupabase(mode, soldeCache) {
             const container = document.getElementById('target-container');
             
             try {
-                // Requête directe pour extraire toutes les cibles actives enregistrées
+                // PROTECTION : On filtre par "user_id_proprietaire" pour que l'utilisateur connecté ne voie que ses cibles
                 const { data: ciblesList, error } = await supabase
                     .from('cibles')
                     .select('*')
+                    .eq('user_id_proprietaire', userTel)
                     .order('created_at', { ascending: false });
 
                 if (error) throw error;
 
                 if (!ciblesList || ciblesList.length === 0) {
-                    container.innerHTML = `<div style="text-align:center; padding:40px; color:#64748b;">Aucun terminal cible détecté dans la base réseau.</div>`;
+                    container.innerHTML = `<div style="text-align:center; padding:40px; color:#64748b;">Aucun terminal cible détecté dans votre espace.</div>`;
                     return;
                 }
 
-                container.innerHTML = ""; // Nettoyage de l'état d'attente
+                container.innerHTML = ""; 
 
-                // Génération des blocs pour chaque numéro de téléphone trouvé
                 ciblesList.forEach(cible => {
-                    const numero = cible.telephone_cible;
+                    const numero = cible.numero_cible || cible.telephone_cible; 
+                    const nomAppareil = cible.nom_cible || "Appareil Sync";
+
                     container.innerHTML += `
                         <div class="target-card">
                             <div class="target-header">
-                                <span style="font-weight:bold; font-size:13px;">📲 APPAREIL : ${numero}</span>
+                                <span style="font-weight:bold; font-size:13px;">🎯 ${nomAppareil.toUpperCase()} : ${numero}</span>
                                 <span class="status-badge" style="background: ${cible.statut_captage === 'CAPTE' ? 'var(--success)' : 'var(--accent)'};">
                                     ${cible.statut_captage || 'DISPONIBLE'}
                                 </span>
@@ -168,8 +190,52 @@
                 });
 
             } catch (err) {
-                console.error("Erreur de synchronisation du tableau de bord :", err.message);
+                console.error("Erreur de synchronisation :", err.message);
                 container.innerHTML = `<div style="text-align:center; padding:40px; color:var(--danger);">Échec de liaison avec le serveur satellite.</div>`;
+            }
+        }
+
+        // ACTION : AJOUTER UNE CIBLE DANS SUPABASE
+        async function ajouterCible() {
+            const nom = document.getElementById('nom_cible').value.trim();
+            const tel = document.getElementById('telephone_cible').value.trim();
+            const soldeCache = localStorage.getItem('kt_solde_global') || "0";
+            const mode = parseInt(soldeCache) >= 5500 ? "GOLD" : "DEMO";
+
+            if (!nom || !tel) {
+                alert("Veuillez renseigner un nom et un numéro pour l'appareil cible.");
+                return;
+            }
+
+            if (!supabase) {
+                alert("Le serveur n'est pas prêt. Veuillez rafraîchir.");
+                return;
+            }
+
+            try {
+                const { error } = await supabase
+                    .from('cibles')
+                    .insert([
+                        {
+                            numero_cible: tel,
+                            telephone_cible: tel,
+                            nom_cible: nom,
+                            user_id_proprietaire: userTel,
+                            statut_captage: "DISPONIBLE"
+                        }
+                    ]);
+
+                if (error) throw error;
+
+                alert("📡 Terminal cible ajouté et synchronisé au réseau !");
+                document.getElementById('nom_cible').value = "";
+                document.getElementById('telephone_cible').value = "";
+                
+                // Rechargement immédiat de la liste
+                await chargerCiblesSupabase(mode, soldeCache);
+
+            } catch (err) {
+                alert("Erreur d'enregistrement de la cible : " + err.message);
             }
         }
 
@@ -178,7 +244,6 @@
         }
 
         window.redirigerVers = function(page, num) {
-            // Transfert du numéro sélectionné dans l'URL pour alimenter le module suivant
             window.location.href = `${page}?tel=${encodeURIComponent(num)}`;
         }
 
@@ -187,7 +252,7 @@
         }
 
         window.deconnexion = function() {
-            sessionStorage.clear();
+            localStorage.removeItem('kt_auth_status'); // Propreté de la déconnexion
             window.location.href = 'identification.html';
         }
     </script>
