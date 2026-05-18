@@ -63,8 +63,8 @@
         const SUPABASE_URL = "https://ufwirghypzowlmeqqgco.supabase.co";
         const SUPABASE_KEY = "sb_publishable_ZMjol0IAFBrmaZULUzR7IA_Gk31Msqq";
         
-        // CORRECTION DE LIAISON : Appel via le namespace supabasejs pour assurer la liaison avec le script CDN
-        const supabase = supabase.supabasejs.createClient(SUPABASE_URL, SUPABASE_KEY);
+        // CORRECTION : Utilisation de l'objet global correct du CDN
+        const clientSupabase = Supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
         window.validerConnexion = async function() {
             const telSaisi = document.getElementById('input_tel').value.trim();
@@ -90,9 +90,9 @@
             const btn = document.getElementById('btn-login');
             btn.disabled = true;
 
-            // 2. Vérification simplifiée et directe dans la table 'profils'
+            // 2. Vérification dans la table 'profils' via clientSupabase
             try {
-                const { data, error } = await supabase
+                const { data, error } = await clientSupabase
                     .from('profils')
                     .select('*')
                     .eq('whatsapp_num', telSaisi)
@@ -100,11 +100,10 @@
 
                 if (error) throw error;
 
-                // On vérifie si le compte existe (pour l'instant, validation par numéro de téléphone trouvé)
                 if (data && data.length > 0) {
                     const profil = data[0];
                     
-                    // Sauvegarde des états de session et synchronisation du solde réel trouvé
+                    // Sauvegarde des états de session et synchronisation
                     sessionStorage.setItem('auth_kimia', 'success');
                     localStorage.setItem('kt_user_tel', profil.whatsapp_num);
                     localStorage.setItem('kt_solde_global', profil.solde_fc || 0);
@@ -117,15 +116,14 @@
 
             } catch (error) {
                 console.error(error);
-                alert("Une erreur est survenue lors de la vérification de vos accès réseau.");
+                alert("Une erreur est survenue lors de la vérification de vos accès réseau : " + error.message);
                 btn.disabled = false;
             }
         }
 
         window.onload = function() {
             if(sessionStorage.getItem('auth_kimia') === 'success') {
-                // Optionnel : redirection automatique si déjà connecté
-                // window.location.href = 'menu.html';
+                window.location.href = 'menu.html';
             }
         }
     </script>
