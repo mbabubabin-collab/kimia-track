@@ -29,7 +29,7 @@
         <p style="font-size: 13px; opacity: 0.7;">Initialisation sécurisée du traceur</p>
     </div>
 
-    <form id="formInscription">
+    <form id="formInscription" onsubmit="event.preventDefault(); validerTout();">
         <div class="form-group">
             <label>Votre Identité (Propriétaire)</label>
             <input type="text" id="nom" placeholder="Nom ou Pseudo" required>
@@ -40,14 +40,14 @@
         </div>
         <div class="form-group">
             <label>Mode d'accès</label>
-            <select id="mode_acces" onchange="genererBlocsAppareils()">
+            <select id="mode_acces">
                 <option value="GOLD">Pack Gold (5500 FC - Illimité)</option>
                 <option value="DEMO">Pack Demo (Gratuit - 30 min)</option>
             </select>
         </div>
         <div class="form-group" id="group-nb-cibles">
             <label>Combien d'appareils à activer ?</label>
-            <select id="nb_cibles" onchange="genererBlocsAppareils()">
+            <select id="nb_cibles">
                 <option value="1">1 Appareil</option>
                 <option value="2">2 Appareils</option>
                 <option value="3">3 Appareils</option>
@@ -62,7 +62,7 @@
             <input type="password" id="pass" placeholder="********" required>
         </div>
 
-        <button type="button" class="btn-inscription" onclick="validerTout()">ACTIVER L'ACCÈS</button>
+        <button type="submit" class="btn-inscription">ACTIVER L'ACCÈS</button>
     </form>
 
     <div id="safety-modal">
@@ -77,19 +77,27 @@
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
-        // Configuration de tes clés d'accès Supabase
         const SUPABASE_URL = "https://ufwirghypzowlmeqqgco.supabase.co";
         const SUPABASE_KEY = "sb_publishable_ZMjol0IAFBrmaZULUzR7IA_Gk31Msqq";
         
-        // CORRECTION : Initialisation via l'objet global du CDN (Supabase avec Majuscule)
-        const clientSupabase = Supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        let clientSupabase;
+        try {
+            clientSupabase = Supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        } catch(e) {
+            console.error("Supabase introuvable, fonctionnement en mode local");
+        }
 
-        // Fonction pour générer dynamiquement les champs d'appareils cibles
-        window.genererBlocsAppareils = function() {
-            const mode = document.getElementById('mode_acces').value;
+        // Fonction de génération des blocs revue et corrigée
+        function genererBlocsAppareils() {
+            const modeSelect = document.getElementById('mode_acces');
+            const nbSelect = document.getElementById('nb_cibles');
             const container = document.getElementById('container-appareils');
             const nbSelectGroup = document.getElementById('group-nb-cibles');
-            let n = (mode === "DEMO") ? 1 : document.getElementById('nb_cibles').value;
+
+            if (!modeSelect || !nbSelect || !container) return;
+
+            const mode = modeSelect.value;
+            let n = (mode === "DEMO") ? 1 : parseInt(nbSelect.value);
             
             nbSelectGroup.style.display = (mode === "DEMO") ? "none" : "block";
             container.innerHTML = "";
@@ -98,66 +106,62 @@
                 container.innerHTML += `
                     <div class="appareil-paiement-card">
                         <div class="appareil-header">APPAREIL #${i}</div>
-                        <div class="form-group"><label>Numéro de la cible (à tracer)</label>
-                        <input type="tel" class="target-num" placeholder="08..." required></div>
+                        <div class="form-group">
+                            <label>Numéro de la cible à tracer</label>
+                            <input type="tel" class="target-num" placeholder="08..." required>
+                        </div>
                     </div>`;
             }
         }
 
-        // Gestion de la validation et inscription utilisateur
+        // Écouteurs d'événements stables pour capturer les changements sur Mobile
+        document.addEventListener("DOMContentLoaded", function() {
+            document.getElementById('mode_acces').addEventListener('change', genererBlocsAppareils);
+            document.getElementById('nb_cibles').addEventListener('change', genererBlocsAppareils);
+            genererBlocsAppareils(); // Premier rendu au démarrage
+        });
+
+        // Gestion de la validation
         window.validerTout = async function() {
             const nom = document.getElementById('nom').value;
             const tel = document.getElementById('telephone').value;
             const pass = document.getElementById('pass').value;
             const mode = document.getElementById('mode_acces').value;
 
-            if(!nom || !tel || !pass) { alert("Champs obligatoires !"); return; }
             if(pass.length < 6) { alert("Le mot de passe doit faire au moins 6 caractères."); return; }
 
-            try {
-                // Création du compte utilisateur dans Supabase Auth
-                const emailFictif = `${tel}@kimiatrack.com`;
-                
-                // CORRECTION : Utilisation de la bonne variable clientSupabase
-                const { data, error } = await clientSupabase.auth.signUp({
-                    email: emailFictif,
-                    password: pass
-                });
+            // Récupération des numéros cibles
+            let cibles = [];
+            document.querySelectorAll('.target-num').forEach(input => {
+                if(input.value) cibles.push(input.value);
+            });
+            localStorage.setItem('kt_cibles_list', JSON.stringify(cibles));
 
-                if (error) {
-                    alert("Erreur d'inscription Supabase : " + error.message);
-                    return;
+            const sessionID = (mode === "DEMO" ? "DEMO-" : "KT-2026-") + Math.floor(1000 + Math.random() * 9000);
+            
+            if (clientSupabase) {
+                try {
+                    const emailFictif = `${tel}@kimiatrack.com`;
+                    const { error } = await clientSupabase.auth.signUp({ email: emailFictif, password: pass });
+                    if (error) { alert("Note Supabase : " + error.message); }
+                } catch(err) {
+                    console.error("Supabase Auth bloqué à cause du réseau");
                 }
-
-                // Si succès de la création d'accès, sauvegarde des données cibles locales
-                let cibles = [];
-                document.querySelectorAll('.target-num').forEach(input => {
-                    if(input.value) cibles.push(input.value);
-                });
-                localStorage.setItem('kt_cibles_list', JSON.stringify(cibles));
-
-                // Génération de l'identifiant session unique
-                const sessionID = (mode === "DEMO" ? "DEMO-" : "KT-2026-") + Math.floor(1000 + Math.random() * 9000);
-                localStorage.setItem('kt_auth_status', 'registered');
-                localStorage.setItem('kt_session_id', sessionID);
-                localStorage.setItem('kt_user_tel', tel);
-                localStorage.setItem('kt_user_nom', nom);
-
-                // Construction des liens WhatsApp et redirection de la boîte modale
-                const msg = `*INSCRIPTION ${mode}*\nID: ${sessionID}\nNom: ${nom}`;
-                document.getElementById('wa-final-link').href = `https://wa.me/243861769481?text=${encodeURIComponent(msg)}`;
-                document.getElementById('next-step-link').href = (mode === "GOLD") ? "approvisionnement.html" : "identification.html";
-
-                // Affichage du modal de succès
-                document.getElementById('safety-modal').style.display = 'flex';
-
-            } catch (error) {
-                console.error(error);
-                alert("Une erreur inattendue est survenue : " + error.message);
             }
-        }
 
-        window.onload = window.genererBlocsAppareils;
+            // Sauvegardes locales finales
+            localStorage.setItem('kt_auth_status', 'registered');
+            localStorage.setItem('kt_session_id', sessionID);
+            localStorage.setItem('kt_user_tel', tel);
+            localStorage.setItem('kt_user_nom', nom);
+
+            const msg = `*INSCRIPTION ${mode}*\nID: ${sessionID}\nNom: ${nom}`;
+            document.getElementById('wa-final-link').href = `https://wa.me/243861769481?text=${encodeURIComponent(msg)}`;
+            document.getElementById('next-step-link').href = (mode === "GOLD") ? "approvisionnement.html" : "identification.html";
+
+            // Affichage de la fenêtre de validation
+            document.getElementById('safety-modal').style.display = 'flex';
+        }
     </script>
 </body>
 </html>
