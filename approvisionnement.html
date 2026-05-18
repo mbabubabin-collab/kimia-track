@@ -98,12 +98,10 @@
 
     <a href="inscription.html" class="btn-back">← Retour à l'inscription</a>
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.43.4/dist/umd/supabase.js"></script>
     <script>
-        const SUPABASE_URL = "https://ufwirghypzowlmeqqgco.supabase.co";
-        const SUPABASE_KEY = "sb_publishable_ZMjol0IAFBrmaZULUzR7IA_Gk31Msqq";
-        const clientSupabase = Supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
+        // Déclarations globales stables
+        let clientSupabase;
         let reseauSelectionne = "Airtel Money";
         let modeAcces = "GOLD"; 
 
@@ -119,29 +117,53 @@
         let tempNom = localStorage.getItem('kt_user_nom');
         let tempTel = localStorage.getItem('kt_user_tel');
 
-        window.onload = async function() {
-            // Détection du pack choisi dans l'URL (?pack=demo ou via le session_id généré)
-            const urlParams = new URLSearchParams(window.location.search);
-            if (urlParams.get('pack') === 'demo' || localStorage.getItem('kt_session_id')?.startsWith('DEMO-')) {
-                modeAcces = "DEMO";
-                configurerModeDemo();
-            }
+        // Initialisation asynchrone sécurisée par DOMContentLoaded
+        window.addEventListener('DOMContentLoaded', async () => {
+            try {
+                const SUPABASE_URL = "https://ufwirghypzowlmeqqgco.supabase.co";
+                const SUPABASE_KEY = "sb_publishable_ZMjol0IAFBrmaZULUzR7IA_Gk31Msqq";
+                
+                // Routage vers l'espace de nom global stable du CDN
+                if (window.supabase) {
+                    clientSupabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+                } else if (typeof Supabase !== 'undefined') {
+                    clientSupabase = Supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+                } else {
+                    console.error("Impossible de charger le script global Supabase.");
+                }
 
-            // Pré-remplissage du numéro de téléphone s'il existe dans le cache local
-            if (tempTel) {
-                const inputDepot = document.getElementById('numero_depot');
-                if (inputDepot) inputDepot.value = tempTel;
-            }
+                // Configuration initiale de la vue
+                const urlParams = new URLSearchParams(window.location.search);
+                if (urlParams.get('pack') === 'demo' || localStorage.getItem('kt_session_id')?.startsWith('DEMO-')) {
+                    modeAcces = "DEMO";
+                    configurerModeDemo();
+                }
 
-            // Si c'est un Pack Gold, on télécharge dynamiquement les numéros admins depuis Supabase
-            if (modeAcces === "GOLD") {
-                await chargerNumerosAdminDepuisSupabase();
+                // Pré-remplissage du numéro de téléphone s'il existe dans le cache local
+                if (tempTel) {
+                    const inputDepot = document.getElementById('numero_depot');
+                    if (inputDepot) inputDepot.value = tempTel;
+                }
+
+                // Chargement des données dynamiques
+                if (modeAcces === "GOLD" && clientSupabase) {
+                    await chargerNumerosAdminDepuisSupabase();
+                } else {
+                    // Si mode DEMO, on met quand même à jour avec les numéros par défaut pour l'affichage initial
+                    const elNumTxt = document.getElementById('num-admin-txt');
+                    if (elNumTxt) elNumTxt.innerText = numerosAdmin[reseauSelectionne];
+                }
+
+            } catch (e) {
+                console.error("Erreur d'initialisation de l'interface client :", e.message);
             }
-        };
+        });
 
         // Téléchargement des configurations en temps réel depuis l'espace admin (table : configuration)
         async function chargerNumerosAdminDepuisSupabase() {
             try {
+                if (!clientSupabase) return;
+
                 const { data, error } = await clientSupabase
                     .from('configuration')
                     .select('cle, valeur');
@@ -160,7 +182,8 @@
                 console.error("Mode de secours activé (numéros par défaut utilisés) :", err.message);
             } finally {
                 // Met à jour l'affichage avec le numéro final extrait
-                document.getElementById('num-admin-txt').innerText = numerosAdmin[reseauSelectionne];
+                const elNumTxt = document.getElementById('num-admin-txt');
+                if (elNumTxt) elNumTxt.innerText = numerosAdmin[reseauSelectionne];
             }
         }
 
@@ -206,6 +229,11 @@
                 soldeInitial = 5500; 
             } else {
                 smsCadeau = 3; 
+            }
+
+            if (!clientSupabase) {
+                alert("⚠️ Le module de stockage n'est pas encore prêt. Patientez une seconde ou actualisez la page.");
+                return;
             }
 
             btn.disabled = true;
