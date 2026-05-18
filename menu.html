@@ -16,21 +16,29 @@
         .session-info { font-size: 11px; color: var(--primary); letter-spacing: 1px; }
         .user-name { font-weight: bold; font-size: 18px; color: white; }
 
-        /* Formulaire d'ajout rapide (Intégré sans casser le design) */
-        .add-target-box { background: var(--card); border: 1px dashed #475569; border-radius: 12px; padding: 15px; margin-bottom: 25px; }
+        /* Formulaire d'ajout rapide (Uniquement visible en GOLD) */
+        .add-target-box { background: var(--card); border: 1px dashed #475569; border-radius: 12px; padding: 15px; margin-bottom: 25px; display: none; }
         .add-target-box h3 { margin: 0 0 10px 0; font-size: 14px; color: var(--primary); }
         .add-inputs { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
-        .add-inputs input { background: #0f172a; border: 1px solid #334155; border-radius: 6px; padding: 10px; color: white; font-size: 13px; }
+        .add-inputs input { background: #0f172a; border: 1px solid #334155; border-radius: 6px; padding: 10px; color: white; font-size: 13px; width: 100%; box-sizing: border-box; }
         .btn-add-submit { background: var(--primary); color: #0f172a; border: none; padding: 10px; border-radius: 6px; font-weight: bold; cursor: pointer; width: 100%; font-size: 13px; }
 
-        /* Grille des Cibles Individualisées */
-        .target-grid { display: flex; flex-direction: column; gap: 20px; }
-        .target-card { background: var(--card); border-radius: 16px; border: 1px solid #334155; overflow: hidden; position: relative; }
+        /* Structure Accordéon des Cibles */
+        .target-grid { display: flex; flex-direction: column; gap: 12px; }
+        .target-card { background: var(--card); border-radius: 12px; border: 1px solid #334155; overflow: hidden; }
         
-        .target-header { background: rgba(56, 189, 248, 0.1); padding: 12px; border-bottom: 1px solid #334155; display: flex; justify-content: space-between; align-items: center; }
+        /* En-tête cliquable de l'accordéon */
+        .accordion-trigger { 
+            background: rgba(56, 189, 248, 0.05); padding: 14px; display: flex; 
+            justify-content: space-between; align-items: center; cursor: pointer; user-select: none;
+        }
+        .accordion-trigger:active { background: rgba(56, 189, 248, 0.15); }
         .status-badge { font-size: 10px; background: var(--success); color: white; padding: 2px 8px; border-radius: 20px; text-transform: uppercase; font-weight: bold; }
         
-        .target-body { padding: 15px; }
+        /* Contenu repliable */
+        .accordion-content { padding: 15px; border-top: 1px solid #2d3a4f; display: none; }
+        .accordion-content.open { display: block; }
+        
         .balance-box { display: flex; justify-content: space-between; align-items: center; background: #0f172a; padding: 10px; border-radius: 10px; margin-bottom: 15px; }
         .balance-label { font-size: 11px; color: #94a3b8; }
         .balance-value { font-size: 16px; font-weight: bold; color: var(--accent); }
@@ -44,9 +52,10 @@
         }
         .btn-tactic:active { transform: scale(0.95); background: var(--primary); color: #0f172a; }
         .btn-tactic span { font-size: 16px; }
-
-        /* Bouton Approvisionnement (Spécial) */
         .btn-refill { grid-column: span 2; background: rgba(34, 197, 94, 0.1); border: 1px dashed var(--success); color: var(--success); }
+
+        /* Barre d'information Forfait Cadeau */
+        .demo-banner { background: rgba(234, 179, 8, 0.1); border: 1px solid var(--accent); padding: 10px; border-radius: 8px; font-size: 12px; color: var(--accent); text-align: center; margin-bottom: 15px; }
 
         /* Navigation Basse */
         .nav-bar { position: fixed; bottom: 0; left: 0; right: 0; background: var(--card); display: flex; justify-content: space-around; padding: 15px; border-top: 1px solid #334155; z-index: 100; }
@@ -63,19 +72,19 @@
             <span class="session-info" id="session-id">INITIALISATION...</span>
             <div class="user-name" id="user-name">Chargement...</div>
         </div>
-        <div style="text-align: right;">
-            <div style="font-size: 10px; color: #94a3b8;">STATUT COMPTE</div>
-            <div style="font-size: 14px; font-weight: bold; color: var(--accent);" id="account-status">GOLD</div>
+        <div>
+            <div style="font-size: 10px; color: #94a3b8; text-align: right;">FORFAIT Actif</div>
+            <div style="font-size: 14px; font-weight: bold; color: var(--accent); text-align: right;" id="account-status">RECHERCHE...</div>
         </div>
     </div>
 
-    <div class="add-target-box">
-        <h3>📡 Ajouter un nouveau terminal à suivre</h3>
+    <div class="add-target-box" id="gold-add-box">
+        <h3>📡 Enregistrer un terminal satellite (Abonnement GOLD)</h3>
         <div class="add-inputs">
-            <input type="text" id="nom_cible" placeholder="Nom (Ex: Ma Voiture)">
-            <input type="tel" id="telephone_cible" placeholder="N° de téléphone">
+            <input type="text" id="nom_cible" placeholder="Nom (Ex: Mon Appareil)">
+            <input type="tel" id="telephone_cible" placeholder="N° de Téléphone">
         </div>
-        <button class="btn-add-submit" onclick="ajouterCible()">ENREGISTRER LA CIBLE</button>
+        <button class="btn-add-submit" onclick="ajouterCible()">SYNCHRONISER AU RÉSEAU</button>
     </div>
 
     <div class="target-grid" id="target-container">
@@ -95,166 +104,168 @@
         const SUPABASE_URL = "https://ufwirghypzowlmeqqgco.supabase.co";
         const SUPABASE_KEY = "sb_publishable_ZMjol0IAFBrmaZULUzR7IA_Gk31Msqq";
         
-        let supabase;
+        let clientSupabase;
         const userTel = localStorage.getItem('kt_user_tel');
         
-        // Correction de l'instanciation de Supabase pour éviter les crashs sur mobile
         if (typeof supabase !== 'undefined') {
-            supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+            clientSupabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
         } else if (typeof Supabase !== 'undefined') {
-            supabase = Supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+            clientSupabase = Supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
         }
 
-        // Sécurité de session locale
-        if (!userTel) {
-            window.location.href = 'identification.html';
-        }
+        if (!userTel) { window.location.href = 'identification.html'; }
 
         window.onload = async function() {
             const sessionID = localStorage.getItem('kt_session_id') || "KT-2026-" + Math.floor(1000 + Math.random() * 9000);
-            const soldeCache = localStorage.getItem('kt_solde_global') || "0";
-            
             document.getElementById('session-id').innerText = sessionID;
             document.getElementById('user-name').innerText = userTel === "0861769481" ? "Administrateur" : "Utilisateur KT";
             
-            const mode = parseInt(soldeCache) >= 5500 ? "GOLD" : "DEMO";
-            document.getElementById('account-status').innerText = mode;
-
-            if (supabase) {
-                await chargerCiblesSupabase(mode, soldeCache);
+            if (clientSupabase) {
+                await determinerForfaitEtCharger();
             }
         };
 
-        // CHARGEMENT INDIVIDUALISÉ DES CIBLES
-        async function chargerCiblesSupabase(mode, soldeCache) {
-            const container = document.getElementById('target-container');
-            
+        async function determinerForfaitEtCharger() {
             try {
-                // PROTECTION : On filtre par "user_id_proprietaire" pour que l'utilisateur connecté ne voie que ses cibles
-                const { data: ciblesList, error } = await supabase
-                    .from('cibles')
-                    .select('*')
-                    .eq('user_id_proprietaire', userTel)
-                    .order('created_at', { ascending: false });
+                // Lecture directe du profil sur Supabase pour savoir s'il est DEMO ou GOLD
+                const { data: profil, error } = await clientSupabase
+                    .from('profils')
+                    .select('statut_compte, solde_fc')
+                    .eq('whatsapp_num', userTel)
+                    .single();
 
                 if (error) throw error;
 
-                if (!ciblesList || ciblesList.length === 0) {
-                    container.innerHTML = `<div style="text-align:center; padding:40px; color:#64748b;">Aucun terminal cible détecté dans votre espace.</div>`;
-                    return;
+                // Si le statut est ACTIF ou payé -> GOLD, sinon -> DEMO
+                const isGold = (profil.statut_compte === "ACTIF" || parseInt(profil.solde_fc) >= 5500);
+                const mode = isGold ? "GOLD" : "DEMO";
+                const solde = profil.solde_fc || 0;
+
+                document.getElementById('account-status').innerText = mode;
+                if(mode === "GOLD") {
+                    document.getElementById('account-status').style.color = "var(--success)";
+                    document.getElementById('gold-add-box').style.display = "block"; // Permet l'ajout de cibles infinies
                 }
 
-                container.innerHTML = ""; 
-
-                ciblesList.forEach(cible => {
-                    const numero = cible.numero_cible || cible.telephone_cible; 
-                    const nomAppareil = cible.nom_cible || "Appareil Sync";
-
-                    container.innerHTML += `
-                        <div class="target-card">
-                            <div class="target-header">
-                                <span style="font-weight:bold; font-size:13px;">🎯 ${nomAppareil.toUpperCase()} : ${numero}</span>
-                                <span class="status-badge" style="background: ${cible.statut_captage === 'CAPTE' ? 'var(--success)' : 'var(--accent)'};">
-                                    ${cible.statut_captage || 'DISPONIBLE'}
-                                </span>
-                            </div>
-                            <div class="target-body">
-                                <div class="balance-box">
-                                    <div>
-                                        <span class="balance-label">SOLDE PORTEFEUILLE</span>
-                                        <div class="balance-value">${parseInt(soldeCache).toLocaleString('fr-FR')} FC</div>
-                                    </div>
-                                    <span style="color:#64748b; font-size:10px;">FORFAIT : ${mode}</span>
-                                </div>
-
-                                <div class="action-grid">
-                                    <button class="btn-tactic" onclick="triggerCaptation('${numero}')">
-                                        <span>🎤</span>Captation Silencieuse
-                                    </button>
-                                    <button class="btn-tactic" onclick="redirigerVers('traceditineraire.html', '${numero}')">
-                                        <span>🗺️</span>Tracer Itinéraire
-                                    </button>
-                                    <button class="btn-tactic" onclick="redirigerVers('smstracing.html', '${numero}')">
-                                        <span>📩</span>SMS Tracing (Data/SMS)
-                                    </button>
-                                    <button class="btn-tactic" onclick="redirigerVers('captation_rapport.html', '${numero}')">
-                                        <span>📸</span>Captation Image & Rapport
-                                    </button>
-                                    <button class="btn-tactic btn-refill" onclick="provisionner()">
-                                        <span>⚡</span>APPROVISIONNER MON COMPTE
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                });
+                await configurerEspaceCibles(mode, solde);
 
             } catch (err) {
-                console.error("Erreur de synchronisation :", err.message);
-                container.innerHTML = `<div style="text-align:center; padding:40px; color:var(--danger);">Échec de liaison avec le serveur satellite.</div>`;
+                console.error(err);
+                // Repli sur le cache local en cas de problème réseau temporaire
+                configurerEspaceCibles("DEMO", 0);
             }
         }
 
-        // ACTION : AJOUTER UNE CIBLE DANS SUPABASE
+        async function configurerEspaceCibles(mode, soldeCache) {
+            const container = document.getElementById('target-container');
+            
+            if (mode === "DEMO") {
+                // Logique DEMO : 1 unique cible imposée (Forfait Cadeau)
+                container.innerHTML = `
+                    <div class="demo-banner">🎁 Mode DÉMO : Vous bénéficiez d'un terminal de suivi cadeau pendant 30 min.</div>
+                    <div class="target-card">
+                        <div class="accordion-trigger" style="cursor: default;">
+                            <span style="font-weight:bold; font-size:13px;">📲 TERMINAL CADEAU : PROVISOIRE</span>
+                            <span class="status-badge" style="background: var(--accent);">ACTIF</span>
+                        </div>
+                        <div class="accordion-content open">
+                            <div class="balance-box">
+                                <div><span class="balance-label">SMS TRACING DISPONIBLE</span><div class="balance-value" style="color:var(--success)">3 SMS GRATUITS</div></div>
+                            </div>
+                            <div class="action-grid">
+                                <button class="btn-tactic" onclick="redirigerVers('smstracing.html', 'CADEAU')"><span>📩</span>SMS Tracing (Données)</button>
+                                <button class="btn-tactic btn-refill" onclick="provisionner()"><span>⚡</span>PASSER EN MODE GOLD (SUIVI ILLIMITÉ)</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            } else {
+                // Logique GOLD : Gestion par Accordéon de tous les numéros ayant obtenu leur pack data/sms
+                try {
+                    const { data: ciblesList, error } = await clientSupabase
+                        .from('cibles')
+                        .select('*')
+                        .eq('user_id_proprietaire', userTel)
+                        .order('created_at', { ascending: false });
+
+                    if (error) throw error;
+
+                    if (!ciblesList || ciblesList.length === 0) {
+                        container.innerHTML = `<div style="text-align:center; padding:40px; color:#64748b;">Aucun terminal lié à votre clé Data/SMS. Utilisez le formulaire ci-dessus pour lier un numéro.</div>`;
+                        return;
+                    }
+
+                    container.innerHTML = "";
+
+                    ciblesList.forEach((cible, index) => {
+                        const numero = cible.numero_cible || cible.telephone_cible;
+                        const nom = cible.nom_cible || "Terminal Relié";
+                        
+                        container.innerHTML += `
+                            <div class="target-card">
+                                <div class="accordion-trigger" onclick="toggleAccordion('content-${index}')">
+                                    <span style="font-weight:bold; font-size:13px;">🎯 ${nom.toUpperCase()} (${numero})</span>
+                                    <span class="status-badge" style="background:var(--success)">GOLD SYNC</span>
+                                </div>
+                                <div class="accordion-content" id="content-${index}">
+                                    <div class="balance-box">
+                                        <div><span class="balance-label">CANAL LIAISON</span><div class="balance-value" style="font-size:13px; color:var(--primary)">DATA & SMS ILLIMITÉS</div></div>
+                                        <span style="color:#64748b; font-size:10px;">STATUT : COMPLET</span>
+                                    </div>
+                                    <div class="action-grid">
+                                        <button class="btn-tactic" onclick="triggerCaptation('${numero}')"><span>🎤</span>Captation Environnement</button>
+                                        <button class="btn-tactic" onclick="redirigerVers('traceditineraire.html', '${numero}')"><span>🗺️</span>Tracer Itinéraire</button>
+                                        <button class="btn-tactic" onclick="redirigerVers('smstracing.html', '${numero}')"><span>📩</span>SMS Tracing Crypté</button>
+                                        <button class="btn-tactic" onclick="redirigerVers('captation_rapport.html', '${numero}')"><span>📸</span>Rapport visuel</button>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    });
+                } catch (err) {
+                    container.innerHTML = `<div style="text-align:center; padding:40px; color:var(--danger);">Erreur lors de la synchronisation satellite.</div>`;
+                }
+            }
+        }
+
+        // Commutateur d'affichage de l'accordéon pour le mode GOLD
+        window.toggleAccordion = function(id) {
+            const content = document.getElementById(id);
+            const isOpen = content.style.display === "block";
+            
+            // Ferme tous les autres accordéons ouverts pour rester propre sur l'écran du téléphone
+            document.querySelectorAll('.accordion-content').forEach(el => el.style.display = "none");
+            
+            // Bascule l'élément cliqué
+            content.style.display = isOpen ? "none" : "block";
+        }
+
         async function ajouterCible() {
             const nom = document.getElementById('nom_cible').value.trim();
             const tel = document.getElementById('telephone_cible').value.trim();
-            const soldeCache = localStorage.getItem('kt_solde_global') || "0";
-            const mode = parseInt(soldeCache) >= 5500 ? "GOLD" : "DEMO";
 
-            if (!nom || !tel) {
-                alert("Veuillez renseigner un nom et un numéro pour l'appareil cible.");
-                return;
-            }
-
-            if (!supabase) {
-                alert("Le serveur n'est pas prêt. Veuillez rafraîchir.");
-                return;
-            }
+            if (!nom || !tel) { alert("Veuillez remplir le nom et le numéro."); return; }
 
             try {
-                const { error } = await supabase
+                const { error } = await clientSupabase
                     .from('cibles')
-                    .insert([
-                        {
-                            numero_cible: tel,
-                            telephone_cible: tel,
-                            nom_cible: nom,
-                            user_id_proprietaire: userTel,
-                            statut_captage: "DISPONIBLE"
-                        }
-                    ]);
+                    .insert([{ numero_cible: tel, telephone_cible: tel, nom_cible: nom, user_id_proprietaire: userTel }]);
 
                 if (error) throw error;
 
-                alert("📡 Terminal cible ajouté et synchronisé au réseau !");
+                alert("📡 Terminal lié avec succès au forfait GOLD !");
                 document.getElementById('nom_cible').value = "";
                 document.getElementById('telephone_cible').value = "";
-                
-                // Rechargement immédiat de la liste
-                await chargerCiblesSupabase(mode, soldeCache);
-
+                await determinerForfaitEtCharger();
             } catch (err) {
-                alert("Erreur d'enregistrement de la cible : " + err.message);
+                alert("Erreur d'ajout : " + err.message);
             }
         }
 
-        window.triggerCaptation = function(num) {
-            alert("📡 [Kimia Relay Request]\nLancement de l'écoute environnementale cryptée sur " + num + ".\nFaisceau ascendant synchronisé.");
-        }
-
-        window.redirigerVers = function(page, num) {
-            window.location.href = `${page}?tel=${encodeURIComponent(num)}`;
-        }
-
-        window.provisionner = function() {
-            window.location.href = 'approvisionnement.html';
-        }
-
-        window.deconnexion = function() {
-            localStorage.removeItem('kt_auth_status'); // Propreté de la déconnexion
-            window.location.href = 'identification.html';
-        }
+        window.triggerCaptation = function(num) { alert("📡 Écoute environnementale initialisée sur " + num); }
+        window.redirigerVers = function(page, num) { window.location.href = `${page}?tel=${encodeURIComponent(num)}`; }
+        window.provisionner = function() { window.location.href = 'approvisionnement.html'; }
+        window.deconnexion = function() { sessionStorage.clear(); window.location.href = 'identification.html'; }
     </script>
 </body>
 </html>
