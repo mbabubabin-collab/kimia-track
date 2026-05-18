@@ -18,7 +18,7 @@
         h4 { margin: 0; font-size: 18px; }
         p { margin: 5px 0 0; font-size: 13px; color: #cbd5e1; }
         .prix { font-weight: bold; color: #fbbf24; font-size: 16px; display: block; margin-top: 5px; }
-        .btn-connexion { background: #38bdf8; color: #0f172a; border: none; padding: 12px; width: 100%; border-radius: 8px; font-weight: bold; margin-bottom: 15px; cursor: pointer; }
+        .btn-connexion { background: #38bdf8; color: #0f172a; border: none; padding: 12px; width: 100%; border-radius: 8px; font-weight: bold; margin-bottom: 15px; cursor: pointer; display: block; text-align: center; }
         .btn-connexion:disabled { background: #334155; color: #64748b; cursor: not-allowed; }
         .btn-retour { display: block; text-align: center; margin-top: 25px; color: #64748b; text-decoration: none; font-size: 14px; }
     </style>
@@ -33,7 +33,7 @@
     <div class="auth-box">
         <input id="input_tel" type="tel" placeholder="N° de téléphone (ex: 08...)">
         <input id="input_pass" type="password" placeholder="Mot de passe (Uniquement pour l'Admin)">
-        <button class="btn-connexion" id="btn-login" onclick="validerConnexion()">SE CONNECTER</button>
+        <button class="btn-connexion" id="btn-login">SE CONNECTER</button>
     </div>
 
     <div class="header">
@@ -64,16 +64,22 @@
         
         const clientSupabase = Supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        window.validerConnexion = async function() {
+        // Liaison propre et directe de l'événement clic en JavaScript
+        document.getElementById('btn-login').addEventListener('click', async function() {
             let telSaisi = document.getElementById('input_tel').value.trim();
             const passSaisi = document.getElementById('input_pass').value.trim();
+            const btn = document.getElementById('btn-login');
 
             if(!telSaisi) {
                 alert("Veuillez saisir votre numéro de téléphone.");
                 return;
             }
 
-            // 1. Connexion Sécurisée Administrateur direct
+            // Bloquer le bouton immédiatement pour éviter les clics multiples
+            btn.disabled = true;
+            btn.innerText = "VÉRIFICATION...";
+
+            // 1. Connexion Administrateur Directe
             const ADMIN_TEL = "243861769481"; 
             const ADMIN_PASS = "BMM2026";
 
@@ -84,19 +90,17 @@
                     localStorage.setItem('kt_solde_global', "999999");
                     window.location.href = 'menu.html';
                     return;
-                } else if (telSaisi === ADMIN_TEL) {
+                } else {
                     alert("Mot de passe administrateur incorrect.");
+                    btn.disabled = false;
+                    btn.innerText = "SE CONNECTER";
                     return;
                 }
             }
 
-            // Désactivation temporaire du bouton pendant la recherche
-            const btn = document.getElementById('btn-login');
-            btn.disabled = true;
-            btn.innerText = "VÉRIFICATION...";
-
+            // 2. Connexion Client - Recherche dans Supabase
             try {
-                // Recherche n°1 : On teste le numéro tel quel
+                // Premier essai avec le numéro exact tapé
                 let { data, error } = await clientSupabase
                     .from('profils')
                     .select('*')
@@ -105,7 +109,7 @@
 
                 if (error) throw error;
 
-                // Recherche n°2 : Si pas trouvé et commence par 0, on teste avec l'indicatif 243
+                // Deuxième essai : si rien trouvé et que le numéro commence par '0', on teste avec '243'
                 if ((!data || data.length === 0) && telSaisi.startsWith('0')) {
                     const telAlternative = "243" + telSaisi.substring(1);
                     const reponseAlt = await clientSupabase
@@ -114,12 +118,12 @@
                         .eq('whatsapp_num', telAlternative)
                         .limit(1);
                     
-                    if (!reponseAlt.error && reponseAlt.data.length > 0) {
+                    if (!reponseAlt.error && reponseAlt.data && reponseAlt.data.length > 0) {
                         data = reponseAlt.data;
                     }
                 }
 
-                // Si le profil existe dans la base de données
+                // Vérification du résultat final
                 if (data && data.length > 0) {
                     const profil = data[0];
                     
@@ -127,10 +131,10 @@
                     localStorage.setItem('kt_user_tel', profil.whatsapp_num);
                     localStorage.setItem('kt_solde_global', profil.solde_fc || 0);
 
-                    // Redirection vers l'espace membre personnalisé
+                    // Redirection vers l'espace client
                     window.location.href = 'menu.html';
                 } else {
-                    alert("Accès refusé : Ce numéro n'est pas encore enregistré. Veuillez vous inscrire via les options ci-dessous.");
+                    alert("Accès refusé : Ce numéro n'est pas encore enregistré.");
                     btn.disabled = false;
                     btn.innerText = "SE CONNECTER";
                 }
@@ -141,8 +145,9 @@
                 btn.disabled = false;
                 btn.innerText = "SE CONNECTER";
             }
-        }
+        });
 
+        // Redirection automatique si déjà connecté
         window.onload = function() {
             if(sessionStorage.getItem('auth_kimia') === 'success') {
                 window.location.href = 'menu.html';
