@@ -111,7 +111,6 @@
         let tempNom = localStorage.getItem('kt_user_nom');
         let tempTel = localStorage.getItem('kt_user_tel');
 
-        // Initialisation immédiate et sécurisée du client Supabase
         function initialiserClient() {
             const SUPABASE_URL = "https://ufwirghypzowlmeqqgco.supabase.co";
             const SUPABASE_KEY = "sb_publishable_ZMjol0IAFBrmaZULUzR7IA_Gk31Msqq";
@@ -125,21 +124,17 @@
                 }
 
                 if (clientSupabase) {
-                    console.log("Supabase lié avec succès.");
-                    // On débloque le bouton dès que le SDK est fonctionnel
                     btn.disabled = false;
                     btn.innerText = (modeAcces === "GOLD") ? "VALIDER ET CONFIRMER MON COMPTE" : "RECEVOIR MON CADEAU & M'ACTIVER";
                 } else {
-                    setTimeout(initialiserClient, 300); // Ré-essai si pas encore injecté
+                    setTimeout(initialiserClient, 300);
                 }
             } catch(e) {
-                console.error("Erreur d'attachement du SDK, nouvel essai...", e);
                 setTimeout(initialiserClient, 300);
             }
         }
 
         window.addEventListener('DOMContentLoaded', async () => {
-            // Lancement de la détection de Supabase
             initialiserClient();
 
             const sessionId = localStorage.getItem('kt_session_id');
@@ -153,7 +148,6 @@
                 if (inputDepot) inputDepot.value = tempTel;
             }
 
-            // Temporisation légère pour s'assurer que l'appel API ne bloque pas le thread mobile
             setTimeout(async () => {
                 if (modeAcces === "GOLD" && clientSupabase) {
                     await chargerNumerosAdminDepuisSupabase();
@@ -234,7 +228,7 @@
             }
 
             if (!clientSupabase) {
-                alert("Le module de stockage n'est pas tout à fait prêt, un court instant s'il vous plaît...");
+                alert("Le module de stockage n'est pas prêt, réinitialisation...");
                 initialiserClient();
                 return;
             }
@@ -243,7 +237,6 @@
             btn.innerText = "⌛ ENREGISTREMENT ET VALIDATION...";
 
             try {
-                // UPDATE du profil pré-existant créé lors de la soumission de l'inscription
                 const { error } = await clientSupabase
                     .from('profils')
                     .update({
@@ -261,13 +254,16 @@
                 localStorage.setItem('kt_sms_demo', smsCadeau);
                 localStorage.setItem('kt_auth_status', 'registered');
 
+                // CORRECTION SÉCURITÉ MOBILE : Utilisation d'un court délai après l'alert pour forcer la redirection
                 if (modeAcces === "GOLD") {
                     alert(`✅ Inscription validée !\nCode soumis : ${codeTxn}.\nAccès actif après vérification.`);
                 } else {
                     alert("✅ Compte Démo activé !\nVos 3 SMS gratuits ont été crédités.");
                 }
                 
-                window.location.href = "identification.html";
+                setTimeout(() => {
+                    window.location.replace("identification.html");
+                }, 200);
 
             } catch (err) {
                 console.error(err);
