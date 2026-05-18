@@ -6,184 +6,127 @@
     <title>Inscription - Kimia Track</title>
     <style>
         :root { --primary: #38bdf8; --bg: #0f172a; --card: #1e293b; --text: #f1f5f9; --accent: #eab308; --success: #22c55e; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 20px; }
-        .header { text-align: center; margin-bottom: 30px; }
-        h2 { color: var(--primary); margin: 0; }
-        .form-group { margin-bottom: 15px; }
-        label { display: block; margin-bottom: 5px; color: #94a3b8; font-size: 13px; }
-        input, select { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #334155; background: var(--card); color: white; box-sizing: border-box; font-size: 14px; }
-        .appareil-paiement-card { background: #1e293b; border: 1px solid var(--primary); padding: 15px; border-radius: 12px; margin-bottom: 25px; position: relative; }
-        .appareil-header { background: var(--primary); color: var(--bg); padding: 5px 12px; border-radius: 6px; font-weight: 800; font-size: 12px; display: inline-block; margin-bottom: 10px; }
-        .btn-inscription { background: var(--success); color: white; border: none; padding: 18px; width: 100%; border-radius: 10px; font-weight: bold; font-size: 18px; cursor: pointer; box-shadow: 0 4px 15px rgba(34, 197, 94, 0.3); }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 15px; display: flex; flex-direction: column; min-height: 100vh; justify-content: center; box-sizing: border-box; }
         
-        #safety-modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(15, 23, 42, 0.95); z-index:9999; justify-content:center; align-items:center; padding:20px; box-sizing: border-box; }
-        .modal-box { background: var(--card); padding: 30px; border-radius: 20px; border: 1px solid var(--primary); text-align: center; width: 100%; max-width: 400px; }
-        .btn-wa { background: #25D366; color: white; padding: 15px; border-radius: 10px; display: block; text-decoration: none; font-weight: bold; margin: 20px 0; }
-        .btn-continue { background: var(--primary); color: var(--bg); padding: 15px; border-radius: 10px; display: block; text-decoration: none; font-weight: bold; }
+        .header { text-align: center; margin-bottom: 20px; }
+        .card { background: var(--card); padding: 25px; border-radius: 15px; border: 1px solid #334155; box-shadow: 0 10px 25px rgba(0,0,0,0.3); }
+        
+        input { 
+            width: 100%; padding: 14px; margin: 10px 0; border-radius: 8px; 
+            border: 1px solid #475569; background: #0f172a; color: white; box-sizing: border-box; font-size: 15px;
+        }
+        input:focus { border-color: var(--primary); outline: none; }
+
+        .btn-register { 
+            background: var(--primary); color: #0f172a; border: none; padding: 16px; 
+            width: 100%; border-radius: 8px; font-weight: bold; font-size: 16px; cursor: pointer;
+            margin-top: 15px; transition: all 0.2s;
+        }
+        .btn-register:disabled { background: #334155; color: #64748b; cursor: not-allowed; }
+        
+        .footer-link { display: block; text-align: center; margin-top: 20px; color: #94a3b8; text-decoration: none; font-size: 13px; }
     </style>
 </head>
 <body>
 
     <div class="header">
-        <h2>Configuration & Activation</h2>
-        <p style="font-size: 13px; opacity: 0.7;">Initialisation sécurisée du traceur</p>
+        <h2 style="color: var(--primary); margin: 0;">Créer un compte</h2>
+        <p style="font-size: 13px; opacity: 0.7; margin-top: 5px;">Rejoignez Kimia Track et sécurisez vos appareils</p>
     </div>
 
-    <form id="formInscription" onsubmit="event.preventDefault(); validerTout();">
-        <div class="form-group">
-            <label>Votre Identité (Propriétaire)</label>
-            <input type="text" id="nom" placeholder="Nom ou Pseudo" required>
-        </div>
-        <div class="form-group">
-            <label>Votre WhatsApp Principal</label>
-            <input type="tel" id="telephone" placeholder="Ex: 08..." required>
-        </div>
-        <div class="form-group">
-            <label>Mode d'accès</label>
-            <select id="mode_acces">
-                <option value="GOLD">Pack Gold (5500 FC - Illimité)</option>
-                <option value="DEMO">Pack Demo (Gratuit - 30 min)</option>
-            </select>
-        </div>
-        <div class="form-group" id="group-nb-cibles">
-            <label>Combien d'appareils à activer ?</label>
-            <select id="nb_cibles">
-                <option value="1">1 Appareil</option>
-                <option value="2">2 Appareils</option>
-                <option value="3">3 Appareils</option>
-                <option value="5">5 Appareils</option>
-            </select>
-        </div>
-
-        <div id="container-appareils"></div>
-
-        <div class="form-group">
-            <label>Mot de passe secret pour le Menu</label>
-            <input type="password" id="pass" placeholder="********" required>
-        </div>
-
-        <button type="submit" class="btn-inscription">ACTIVER L'ACCÈS</button>
-    </form>
-
-    <div id="safety-modal">
-        <div class="modal-box">
-            <h3 style="color:var(--success); margin-top:0;">✅ Profil Enregistré !</h3>
-            <p style="font-size: 14px;">Votre configuration est sauvegardée. Pour finaliser l'activation :</p>
-            <a href="#" id="wa-final-link" target="_blank" class="btn-wa">🚀 Envoyer mon ID via WhatsApp</a>
-            <div style="margin: 15px 0; font-size: 11px; color: #94a3b8;">OU SI WHATSAPP NE S'OUVRE PAS :</div>
-            <a href="#" id="next-step-link" class="btn-continue">Continuer vers l'application</a>
-        </div>
+    <div class="card">
+        <input type="text" id="nom_user" placeholder="Votre nom complet" required>
+        <input type="tel" id="tel_user" placeholder="N° WhatsApp (ex: 089...)" required>
+        <input type="password" id="password_user" placeholder="Créez un mot de passe" required>
+        
+        <button class="btn-register" id="btn-submit-reg" disabled onclick="enregistrerInscription()">CONNEXION SERVEUR...</button>
     </div>
+
+    <a href="identification.html" class="footer-link">Déjà inscrit ? Connectez-vous</a>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
-        const SUPABASE_URL = "https://ufwirghypzowlmeqqgco.supabase.co";
-        const SUPABASE_KEY = "sb_publishable_ZMjol0IAFBrmaZULUzR7IA_Gk31Msqq";
-        
         let clientSupabase;
-        try {
-            clientSupabase = Supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-        } catch(e) {
-            console.error("Supabase introuvable, fonctionnement en mode local");
-        }
 
-        // Fonction de génération des blocs revue et corrigée
-        function genererBlocsAppareils() {
-            const modeSelect = document.getElementById('mode_acces');
-            const nbSelect = document.getElementById('nb_cibles');
-            const container = document.getElementById('container-appareils');
-            const nbSelectGroup = document.getElementById('group-nb-cibles');
+        function initialiserSupabase() {
+            const SUPABASE_URL = "https://ufwirghypzowlmeqqgco.supabase.co";
+            const SUPABASE_KEY = "sb_publishable_ZMjol0IAFBrmaZULUzR7IA_Gk31Msqq";
+            const btn = document.getElementById('btn-submit-reg');
 
-            if (!modeSelect || !nbSelect || !container) return;
-
-            const mode = modeSelect.value;
-            let n = (mode === "DEMO") ? 1 : parseInt(nbSelect.value);
-            
-            nbSelectGroup.style.display = (mode === "DEMO") ? "none" : "block";
-            container.innerHTML = "";
-
-            for(let i = 1; i <= n; i++) {
-                container.innerHTML += `
-                    <div class="appareil-paiement-card">
-                        <div class="appareil-header">APPAREIL #${i}</div>
-                        <div class="form-group">
-                            <label>Numéro de la cible à tracer</label>
-                            <input type="tel" class="target-num" placeholder="08..." required>
-                        </div>
-                    </div>`;
-            }
-        }
-
-        // Écouteurs d'événements stables pour capturer les changements sur Mobile
-        document.addEventListener("DOMContentLoaded", function() {
-            document.getElementById('mode_acces').addEventListener('change', genererBlocsAppareils);
-            document.getElementById('nb_cibles').addEventListener('change', genererBlocsAppareils);
-            genererBlocsAppareils(); // Premier rendu au démarrage
-        });
-
-        // Gestion de la validation
-        window.validerTout = async function() {
-            let nom = document.getElementById('nom').value.trim();
-            let tel = document.getElementById('telephone').value.trim();
-            const pass = document.getElementById('pass').value.trim();
-            const mode = document.getElementById('mode_acces').value;
-
-            if(pass.length < 6) { alert("Le mot de passe doit faire au moins 6 caractères."); return; }
-
-            // Uniformisation automatique du format numéro (remplace +243 par 0)
-            if (tel.startsWith('+243')) tel = tel.replace('+243', '0');
-            if (tel.startsWith('243') && tel.length > 9) tel = '0' + tel.substring(3);
-
-            // Récupération des numéros cibles depuis les accordéons
-            let cibles = [];
-            document.querySelectorAll('.target-num').forEach(input => {
-                if(input.value) cibles.push(input.value.trim());
-            });
-            localStorage.setItem('kt_cibles_list', JSON.stringify(cibles));
-
-            const ciblesTexte = cibles.join(', ');
-            const sessionID = (mode === "DEMO" ? "DEMO-" : "KT-2026-") + Math.floor(1000 + Math.random() * 9000);
-            
-            // PRISE EN CHARGE STRICTE DU MOT DE PASSE ET DES DONNÉES DANS SUPABASE
-            if (clientSupabase) {
-                try {
-                    const { error } = await clientSupabase
-                        .from('profils')
-                        .insert([{
-                            nom: nom,
-                            whatsapp_num: tel,
-                            mot_de_passe: pass, // Stockage de son mot de passe personnalisé
-                            statut_compte: mode,
-                            appareils_cibles: ciblesTexte, // Stockage des cibles issues de l'accordéon
-                            solde_fc: (mode === "DEMO") ? 0 : 5500,
-                            code_transaction_activation: (mode === "DEMO") ? "CADEAU-DEMO" : "EN-ATTENTE"
-                        }]);
-
-                    if (error) { 
-                        if(error.message.includes("unique constraint")) {
-                            alert("Ce numéro possède déjà un compte d'accès Kimia Track.");
-                            window.location.href = "identification.html";
-                            return;
-                        }
-                        alert("Note Supabase : " + error.message); 
-                    }
-                } catch(err) {
-                    console.error("Supabase Bloqué à cause du réseau", err);
+            try {
+                if (typeof supabase !== 'undefined') {
+                    clientSupabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+                } else if (typeof Supabase !== 'undefined') {
+                    clientSupabase = Supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
                 }
+
+                if (clientSupabase) {
+                    btn.disabled = false;
+                    btn.innerText = "CONTINUER VERS L'ACTIVATION";
+                } else {
+                    setTimeout(initialiserSupabase, 300);
+                }
+            } catch (e) {
+                setTimeout(initialiserSupabase, 300);
+            }
+        }
+
+        window.addEventListener('DOMContentLoaded', initialiserSupabase);
+
+        async function enregistrerInscription() {
+            const btn = document.getElementById('btn-submit-reg');
+            const nom = document.getElementById('nom_user').value.trim();
+            const tel = document.getElementById('tel_user').value.trim();
+            const password = document.getElementById('password_user').value.trim();
+
+            if (!nom || !tel || !password) {
+                alert("Veuillez remplir tous les champs obligatoires.");
+                return;
             }
 
-            // Sauvegardes locales finales
-            localStorage.setItem('kt_auth_status', 'registered');
-            localStorage.setItem('kt_session_id', sessionID);
-            localStorage.setItem('kt_user_tel', tel);
-            localStorage.setItem('kt_user_nom', nom);
+            if (!clientSupabase) {
+                alert("Le serveur n'est pas encore prêt, veuillez patienter une seconde...");
+                return;
+            }
 
-            const msg = `*INSCRIPTION ${mode}*\nID: ${sessionID}\nNom: ${nom}\nTel: ${tel}\nCibles: ${ciblesTexte}`;
-            document.getElementById('wa-final-link').href = `https://wa.me/243861769481?text=${encodeURIComponent(msg)}`;
-            document.getElementById('next-step-link').href = (mode === "GOLD") ? "approvisionnement.html" : "identification.html";
+            btn.disabled = true;
+            btn.innerText = "⌛ ENREGISTREMENT SUR LE SERVEUR...";
 
-            // Affichage de la fenêtre de validation
-            document.getElementById('safety-modal').style.display = 'flex';
+            try {
+                // Sauvegarde locale de secours
+                localStorage.setItem('kt_user_nom', nom);
+                localStorage.setItem('kt_user_tel', tel);
+
+                // Écriture forcée avec UPSERT pour éviter les blocages de clés uniques
+                const { error } = await clientSupabase
+                    .from('profils')
+                    .upsert([
+                        { 
+                            whatsapp_num: tel, 
+                            nom: nom, 
+                            mot_de_passe: password,
+                            code_transaction_activation: "EN-ATTENTE",
+                            statut_compte: "ATTENTE",
+                            solde_fc: 0,
+                            sms_tracking_restants: 0
+                        }
+                    ], { onConflict: 'whatsapp_num' });
+
+                if (error) throw error;
+
+                alert("✅ Inscription réussie ! Passons à la configuration de votre portefeuille.");
+                
+                // Redirection fluide après l'alert
+                setTimeout(() => {
+                    window.location.href = "approvisionnement.html";
+                }, 100);
+
+            } catch (err) {
+                console.error(err);
+                alert("Erreur lors de la création du compte : " + err.message);
+                btn.disabled = false;
+                btn.innerText = "CONTINUER VERS L'ACTIVATION";
+            }
         }
     </script>
 </body>
