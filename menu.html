@@ -11,98 +11,86 @@
         }
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 15px; padding-bottom: 90px; }
         
-        /* Header & Session */
-        .header-app { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; background: var(--card); padding: 15px; border-radius: 12px; box-shadow: 0 4px 6px var(--shadow); }
-        .session-info { font-size: 11px; color: var(--primary); letter-spacing: 1px; }
-        .user-name { font-weight: bold; font-size: 18px; color: white; }
+        .header-app { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; background: var(--card); padding: 15px; border-radius: 12px; box-shadow: 0 4px 6px var(--shadow); border: 1px solid #2d3a4f; }
+        .session-info { font-size: 11px; color: var(--primary); letter-spacing: 1px; font-family: monospace; }
+        .user-name { font-weight: bold; font-size: 18px; color: white; margin-top: 2px; }
 
-        /* Formulaire d'ajout rapide (Uniquement visible en GOLD) */
+        .badge-container { text-align: right; }
+        .badge-label { font-size: 9px; color: #94a3b8; letter-spacing: 0.5px; text-transform: uppercase; }
+        .badge-status { font-size: 14px; font-weight: bold; padding: 4px 10px; border-radius: 6px; margin-top: 3px; display: inline-block; }
+        .badge-status.demo { background: rgba(234, 179, 8, 0.15); color: var(--accent); border: 1px solid var(--accent); }
+        .badge-status.gold { background: rgba(34, 197, 94, 0.15); color: var(--success); border: 1px solid var(--success); }
+
         .add-target-box { background: var(--card); border: 1px dashed #475569; border-radius: 12px; padding: 15px; margin-bottom: 25px; display: none; }
-        .add-target-box h3 { margin: 0 0 10px 0; font-size: 14px; color: var(--primary); }
-        .add-inputs { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
-        .add-inputs input { background: #0f172a; border: 1px solid #334155; border-radius: 6px; padding: 10px; color: white; font-size: 13px; width: 100%; box-sizing: border-box; }
-        .btn-add-submit { background: var(--primary); color: #0f172a; border: none; padding: 10px; border-radius: 6px; font-weight: bold; cursor: pointer; width: 100%; font-size: 13px; }
+        .add-target-box h3 { margin: 0 0 12px 0; font-size: 14px; color: var(--primary); font-weight: 600; }
+        .add-inputs { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
+        .add-inputs input { background: #0f172a; border: 1px solid #334155; border-radius: 6px; padding: 12px; color: white; font-size: 13px; width: 100%; box-sizing: border-box; }
+        .btn-add-submit { background: var(--primary); color: #0f172a; border: none; padding: 12px; border-radius: 6px; font-weight: bold; cursor: pointer; width: 100%; font-size: 13px; }
 
-        /* Structure Accordéon des Cibles */
-        .target-grid { display: flex; flex-direction: column; gap: 12px; }
-        .target-card { background: var(--card); border-radius: 12px; border: 1px solid #334155; overflow: hidden; }
+        .target-grid { display: flex; flex-direction: column; gap: 14px; }
+        .target-card { background: var(--card); border-radius: 14px; border: 1px solid #334155; overflow: hidden; }
         
-        /* En-tête cliquable de l'accordéon */
-        .accordion-trigger { 
-            background: rgba(56, 189, 248, 0.05); padding: 14px; display: flex; 
-            justify-content: space-between; align-items: center; cursor: pointer; user-select: none;
-        }
-        .accordion-trigger:active { background: rgba(56, 189, 248, 0.15); }
-        .status-badge { font-size: 10px; background: var(--success); color: white; padding: 2px 8px; border-radius: 20px; text-transform: uppercase; font-weight: bold; }
+        .accordion-trigger { background: rgba(30, 41, 59, 0.7); padding: 16px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; user-select: none; }
+        .status-badge { font-size: 10px; color: white; padding: 3px 9px; border-radius: 20px; text-transform: uppercase; font-weight: bold; }
         
-        /* Contenu repliable */
-        .accordion-content { padding: 15px; border-top: 1px solid #2d3a4f; display: none; }
+        .accordion-content { padding: 16px; border-top: 1px solid #2d3a4f; background: #151f32; display: none; }
         .accordion-content.open { display: block; }
         
-        .balance-box { display: flex; justify-content: space-between; align-items: center; background: #0f172a; padding: 10px; border-radius: 10px; margin-bottom: 15px; }
+        .balance-box { display: flex; justify-content: space-between; align-items: center; background: #0f172a; padding: 12px; border-radius: 8px; margin-bottom: 16px; }
         .balance-label { font-size: 11px; color: #94a3b8; }
-        .balance-value { font-size: 16px; font-weight: bold; color: var(--accent); }
+        .balance-value { font-size: 15px; font-weight: bold; color: var(--accent); }
 
-        /* Grille d'actions tactiques */
         .action-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
-        .btn-tactic { 
-            background: #2d3a4f; border: 1px solid #475569; color: white; 
-            padding: 12px 8px; border-radius: 10px; font-size: 11px; font-weight: bold; 
-            cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 5px; transition: 0.2s;
-        }
-        .btn-tactic:active { transform: scale(0.95); background: var(--primary); color: #0f172a; }
-        .btn-tactic span { font-size: 16px; }
-        .btn-refill { grid-column: span 2; background: rgba(34, 197, 94, 0.1); border: 1px dashed var(--success); color: var(--success); }
+        .btn-tactic { background: #222f44; border: 1px solid #3b4b66; color: white; padding: 14px 10px; border-radius: 10px; font-size: 11px; font-weight: bold; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 6px; }
+        .btn-tactic:active { transform: scale(0.97); background: var(--primary); color: #0f172a; }
+        .btn-tactic span { font-size: 18px; }
+        
+        .btn-refill { grid-column: span 2; background: rgba(34, 197, 94, 0.08); border: 1px dashed var(--success); color: var(--success); padding: 12px; margin-top: 5px; }
+        .demo-banner { background: rgba(234, 179, 8, 0.08); border: 1px solid rgba(234, 179, 8, 0.3); padding: 12px; border-radius: 10px; font-size: 12px; color: var(--accent); text-align: center; margin-bottom: 20px; }
 
-        /* Barre d'information Forfait Cadeau */
-        .demo-banner { background: rgba(234, 179, 8, 0.1); border: 1px solid var(--accent); padding: 10px; border-radius: 8px; font-size: 12px; color: var(--accent); text-align: center; margin-bottom: 15px; }
-
-        /* Navigation Basse */
         .nav-bar { position: fixed; bottom: 0; left: 0; right: 0; background: var(--card); display: flex; justify-content: space-around; padding: 15px; border-top: 1px solid #334155; z-index: 100; }
-        .nav-btn { color: #94a3b8; text-decoration: none; font-size: 12px; display: flex; flex-direction: column; align-items: center; gap: 4px; cursor: pointer; }
+        .nav-btn { color: #94a3b8; text-decoration: none; font-size: 12px; display: flex; flex-direction: column; align-items: center; gap: 4px; }
         .nav-btn.active { color: var(--primary); }
-        .nav-btn.reclamation { color: var(--accent); }
-        .nav-btn.help { color: #38bdf8; } 
     </style>
 </head>
 <body>
 
     <div class="header-app">
         <div>
-            <span class="session-info" id="session-id">INITIALISATION...</span>
-            <div class="user-name" id="user-name">Chargement...</div>
+            <span class="session-info" id="session-id">KT-SECURE-SYNC</span>
+            <div class="user-name" id="user-name">Vérification serveur...</div>
         </div>
-        <div>
-            <div style="font-size: 10px; color: #94a3b8; text-align: right;">FORFAIT Actif</div>
-            <div style="font-size: 14px; font-weight: bold; color: var(--accent); text-align: right;" id="account-status">RECHERCHE...</div>
+        <div class="badge-container">
+            <div class="badge-label">Statut Système</div>
+            <div class="badge-status" id="account-status">VÉRIFICATION</div>
         </div>
     </div>
 
     <div class="add-target-box" id="gold-add-box">
-        <h3>📡 Enregistrer un terminal satellite (Abonnement GOLD)</h3>
+        <h3>📡 Enregistrer un terminal satellite (GOLD)</h3>
         <div class="add-inputs">
-            <input type="text" id="nom_cible" placeholder="Nom (Ex: Mon Appareil)">
-            <input type="tel" id="telephone_cible" placeholder="N° de Téléphone">
+            <input type="text" id="nom_cible" placeholder="Nom de l'appareil">
+            <input type="tel" id="telephone_cible" placeholder="Numéro cible">
         </div>
-        <button class="btn-add-submit" onclick="ajouterCible()">SYNCHRONISER AU RÉSEAU</button>
+        <button class="btn-add-submit" onclick="ajouterCible()">INITIALISER LA LIAISON</button>
     </div>
 
     <div class="target-grid" id="target-container">
-        <div style="text-align:center; padding:40px; color:#64748b; font-style:italic;">Recherche et synchronisation des relais satellites...</div>
+        <div style="text-align:center; padding:40px; color:#64748b; font-style:italic;">Connexion aux flux satellites en cours...</div>
     </div>
 
     <nav class="nav-bar">
-        <a href="aide.html" class="nav-btn help"><span>❓</span>Aide</a>
+        <a href="aide.html" class="nav-btn"><span>❓</span>Aide</a>
         <a href="#" class="nav-btn active"><span>📡</span>Radar</a>
         <a href="approvisionnement.html" class="nav-btn"><span>💰</span>Wallet</a>
-        <a href="https://wa.me/243861769481" class="nav-btn reclamation" target="_blank"><span>⚠️</span>Réclamation</a>
         <a href="#" class="nav-btn" onclick="deconnexion()"><span>🔒</span>Quitter</a>
     </nav>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
+        // ATTENTION : Remplace bien cette clé par ta clé complète trouvée dans Supabase Settings !
         const SUPABASE_URL = "https://ufwirghypzowlmeqqgco.supabase.co";
-        const SUPABASE_KEY = "sb_publishable_ZMjol0IAFBrmaZULUzR7IA_Gk31Msqq";
+        const SUPABASE_KEY = "sb_publishable_ZMjol0IAFBrmaULUzR7IA_Gk31Msqq"; 
         
         let clientSupabase;
         const userTel = localStorage.getItem('kt_user_tel');
@@ -113,74 +101,91 @@
             clientSupabase = Supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
         }
 
-        if (!userTel) { window.location.href = 'identification.html'; }
+        if (!userTel) { 
+            window.location.href = 'identification.html'; 
+        }
 
         window.onload = async function() {
-            const sessionID = localStorage.getItem('kt_session_id') || "KT-2026-" + Math.floor(1000 + Math.random() * 9000);
-            document.getElementById('session-id').innerText = sessionID;
-            document.getElementById('user-name').innerText = userTel === "0861769481" ? "Administrateur" : "Utilisateur KT";
-            
+            document.getElementById('session-id').innerText = "KT-" + userTel;
             if (clientSupabase) {
-                await determinerForfaitEtCharger();
+                await synchroniserProfilEtEspace();
+            } else {
+                alert("Erreur de chargement du module Supabase. Vérifiez votre connexion ou la clé d'API.");
             }
         };
 
-        async function determinerForfaitEtCharger() {
+        async function synchroniserProfilEtEspace() {
             try {
-                // Lecture directe du profil sur Supabase pour savoir s'il est DEMO ou GOLD
+                // Requête explicite
                 const { data: profil, error } = await clientSupabase
                     .from('profils')
-                    .select('statut_compte, solde_fc')
+                    .select('nom, statut_compte, solde_fc')
                     .eq('whatsapp_num', userTel)
-                    .single();
+                    .maybeSingle(); // Évite le crash si aucun profil n'est trouvé
 
                 if (error) throw error;
 
-                // Si le statut est ACTIF ou payé -> GOLD, sinon -> DEMO
-                const isGold = (profil.statut_compte === "ACTIF" || parseInt(profil.solde_fc) >= 5500);
-                const mode = isGold ? "GOLD" : "DEMO";
-                const solde = profil.solde_fc || 0;
-
-                document.getElementById('account-status').innerText = mode;
-                if(mode === "GOLD") {
-                    document.getElementById('account-status').style.color = "var(--success)";
-                    document.getElementById('gold-add-box').style.display = "block"; // Permet l'ajout de cibles infinies
+                if (!profil) {
+                    // Si aucun compte n'est trouvé dans Supabase avec ce numéro
+                    document.getElementById('user-name').innerText = "Profil non trouvé";
+                    document.getElementById('account-status').innerText = "MODE DÉMO";
+                    document.getElementById('account-status').className = "badge-status demo";
+                    await genererEspaceCibles("DEMO", 0);
+                    return;
                 }
 
-                await configurerEspaceCibles(mode, solde);
+                // Affichage du vrai Nom complet de la table
+                document.getElementById('user-name').innerText = profil.nom || "Utilisateur Kimia";
+
+                // Validation stricte du Forfait
+                const calculGold = (profil.statut_compte === "ACTIF" || parseInt(profil.solde_fc) >= 5500);
+                const mode = calculGold ? "GOLD" : "DEMO";
+                const solde = profil.solde_fc || 0;
+
+                document.getElementById('account-status').innerText = `MODE ${mode}`;
+                document.getElementById('account-status').className = `badge-status ${mode.toLowerCase()}`;
+
+                if (mode === "GOLD") {
+                    document.getElementById('gold-add-box').style.display = "block";
+                }
+
+                await genererEspaceCibles(mode, solde);
 
             } catch (err) {
-                console.error(err);
-                // Repli sur le cache local en cas de problème réseau temporaire
-                configurerEspaceCibles("DEMO", 0);
+                alert("Erreur de synchronisation serveur : " + err.message);
+                // Mode dégradé sécurisé
+                document.getElementById('user-name').innerText = "Mode Hors-Ligne";
+                await genererEspaceCibles("DEMO", 0);
             }
         }
 
-        async function configurerEspaceCibles(mode, soldeCache) {
+        async function genererEspaceCibles(mode, soldeCompte) {
             const container = document.getElementById('target-container');
             
             if (mode === "DEMO") {
-                // Logique DEMO : 1 unique cible imposée (Forfait Cadeau)
                 container.innerHTML = `
-                    <div class="demo-banner">🎁 Mode DÉMO : Vous bénéficiez d'un terminal de suivi cadeau pendant 30 min.</div>
+                    <div class="demo-banner">
+                        <strong>⚠️ MODE DÉMO ACTIF</strong><br>
+                        Vous utilisez le forfait cadeau temporaire (3 SMS de suivi de données).
+                    </div>
                     <div class="target-card">
                         <div class="accordion-trigger" style="cursor: default;">
-                            <span style="font-weight:bold; font-size:13px;">📲 TERMINAL CADEAU : PROVISOIRE</span>
+                            <span style="font-weight:bold; font-size:13px;">📲 TERMINAL FORFAIT CADEAU</span>
                             <span class="status-badge" style="background: var(--accent);">ACTIF</span>
                         </div>
                         <div class="accordion-content open">
                             <div class="balance-box">
-                                <div><span class="balance-label">SMS TRACING DISPONIBLE</span><div class="balance-value" style="color:var(--success)">3 SMS GRATUITS</div></div>
+                                <div><span class="balance-label">SMS DISPONIBLES</span><div class="balance-value" style="color:var(--success)">3 MODULES RESTANTS</div></div>
                             </div>
                             <div class="action-grid">
-                                <button class="btn-tactic" onclick="redirigerVers('smstracing.html', 'CADEAU')"><span>📩</span>SMS Tracing (Données)</button>
-                                <button class="btn-tactic btn-refill" onclick="provisionner()"><span>⚡</span>PASSER EN MODE GOLD (SUIVI ILLIMITÉ)</button>
+                                <button class="btn-tactic" style="grid-column: span 2;" onclick="redirigerVers('smstracing.html', 'CADEAU')">
+                                    <span>📩</span>Ouvrir SMS Tracing (Données)
+                                </button>
                             </div>
                         </div>
                     </div>
                 `;
             } else {
-                // Logique GOLD : Gestion par Accordéon de tous les numéros ayant obtenu leur pack data/sms
                 try {
                     const { data: ciblesList, error } = await clientSupabase
                         .from('cibles')
@@ -191,7 +196,10 @@
                     if (error) throw error;
 
                     if (!ciblesList || ciblesList.length === 0) {
-                        container.innerHTML = `<div style="text-align:center; padding:40px; color:#64748b;">Aucun terminal lié à votre clé Data/SMS. Utilisez le formulaire ci-dessus pour lier un numéro.</div>`;
+                        container.innerHTML = `
+                            <div style="text-align:center; padding:30px; color:#64748b; border: 1px dashed #334155; border-radius:12px;">
+                                Aucune cible synchronisée. Utilisez le formulaire ci-dessus pour lier un numéro.
+                            </div>`;
                         return;
                     }
 
@@ -199,44 +207,39 @@
 
                     ciblesList.forEach((cible, index) => {
                         const numero = cible.numero_cible || cible.telephone_cible;
-                        const nom = cible.nom_cible || "Terminal Relié";
+                        const nom = cible.nom_cible || "Appareil";
                         
                         container.innerHTML += `
                             <div class="target-card">
                                 <div class="accordion-trigger" onclick="toggleAccordion('content-${index}')">
-                                    <span style="font-weight:bold; font-size:13px;">🎯 ${nom.toUpperCase()} (${numero})</span>
-                                    <span class="status-badge" style="background:var(--success)">GOLD SYNC</span>
+                                    <span style="font-weight:bold; font-size:13px;">🎯 ${nom.toUpperCase()} [${numero}]</span>
+                                    <span class="status-badge" style="background:var(--success)">GOLD LIAISON</span>
                                 </div>
                                 <div class="accordion-content" id="content-${index}">
                                     <div class="balance-box">
-                                        <div><span class="balance-label">CANAL LIAISON</span><div class="balance-value" style="font-size:13px; color:var(--primary)">DATA & SMS ILLIMITÉS</div></div>
-                                        <span style="color:#64748b; font-size:10px;">STATUT : COMPLET</span>
+                                        <div><span class="balance-label">PORTEFEUILLE</span><div class="balance-value">${parseInt(soldeCompte).toLocaleString('fr-FR')} FC</div></div>
+                                        <div><span class="balance-label">RÉSEAU</span><div class="balance-value" style="font-size:13px; color:var(--primary)">DATA / SMS</div></div>
                                     </div>
                                     <div class="action-grid">
-                                        <button class="btn-tactic" onclick="triggerCaptation('${numero}')"><span>🎤</span>Captation Environnement</button>
-                                        <button class="btn-tactic" onclick="redirigerVers('traceditineraire.html', '${numero}')"><span>🗺️</span>Tracer Itinéraire</button>
-                                        <button class="btn-tactic" onclick="redirigerVers('smstracing.html', '${numero}')"><span>📩</span>SMS Tracing Crypté</button>
-                                        <button class="btn-tactic" onclick="redirigerVers('captation_rapport.html', '${numero}')"><span>📸</span>Rapport visuel</button>
+                                        <button class="btn-tactic" onclick="redirigerVers('captage.html', '${numero}')"><span>🎤</span>Captage Environnement</button>
+                                        <button class="btn-tactic" onclick="redirigerVers('itineraire.html', '${numero}')"><span>🗺️</span>Tracer Itinéraire</button>
+                                        <button class="btn-tactic" onclick="redirigerVers('smstracing.html', '${numero}')"><span>📩</span>SMS Tracing (Data)</button>
+                                        <button class="btn-tactic" onclick="redirigerVers('captation-image.html', '${numero}')"><span>📸</span>Captation Image & Rapport</button>
                                     </div>
                                 </div>
                             </div>
                         `;
                     });
                 } catch (err) {
-                    container.innerHTML = `<div style="text-align:center; padding:40px; color:var(--danger);">Erreur lors de la synchronisation satellite.</div>`;
+                    container.innerHTML = `<div style="text-align:center; padding:40px; color:var(--danger);">Erreur de chargement des cibles.</div>`;
                 }
             }
         }
 
-        // Commutateur d'affichage de l'accordéon pour le mode GOLD
         window.toggleAccordion = function(id) {
             const content = document.getElementById(id);
             const isOpen = content.style.display === "block";
-            
-            // Ferme tous les autres accordéons ouverts pour rester propre sur l'écran du téléphone
             document.querySelectorAll('.accordion-content').forEach(el => el.style.display = "none");
-            
-            // Bascule l'élément cliqué
             content.style.display = isOpen ? "none" : "block";
         }
 
@@ -244,7 +247,7 @@
             const nom = document.getElementById('nom_cible').value.trim();
             const tel = document.getElementById('telephone_cible').value.trim();
 
-            if (!nom || !tel) { alert("Veuillez remplir le nom et le numéro."); return; }
+            if (!nom || !tel) { alert("Veuillez remplir tous les champs."); return; }
 
             try {
                 const { error } = await clientSupabase
@@ -253,19 +256,17 @@
 
                 if (error) throw error;
 
-                alert("📡 Terminal lié avec succès au forfait GOLD !");
+                alert("📡 Terminal lié au réseau GOLD !");
                 document.getElementById('nom_cible').value = "";
                 document.getElementById('telephone_cible').value = "";
-                await determinerForfaitEtCharger();
+                await synchroniserProfilEtEspace();
             } catch (err) {
                 alert("Erreur d'ajout : " + err.message);
             }
         }
 
-        window.triggerCaptation = function(num) { alert("📡 Écoute environnementale initialisée sur " + num); }
         window.redirigerVers = function(page, num) { window.location.href = `${page}?tel=${encodeURIComponent(num)}`; }
-        window.provisionner = function() { window.location.href = 'approvisionnement.html'; }
-        window.deconnexion = function() { sessionStorage.clear(); window.location.href = 'identification.html'; }
+        window.deconnexion = function() { localStorage.removeItem('kt_user_tel'); window.location.href = 'identification.html'; }
     </script>
 </body>
 </html>
