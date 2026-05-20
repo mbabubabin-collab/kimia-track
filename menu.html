@@ -11,6 +11,11 @@
         }
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 15px; padding-bottom: 90px; }
         
+        /* Style du nouveau bloc logo harmonisé */
+        .hero { text-align: center; margin-bottom: 20px; }
+        .hero h1 { color: var(--primary); margin: 0; font-size: 24px; letter-spacing: 1px; }
+        .hero p { font-size: 13px; opacity: 0.7; margin-top: 5px; }
+
         .header-app { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; background: var(--card); padding: 15px; border-radius: 12px; box-shadow: 0 4px 6px var(--shadow); border: 1px solid #2d3a4f; }
         .session-info { font-size: 11px; color: var(--primary); letter-spacing: 1px; font-family: monospace; }
         .user-name { font-weight: bold; font-size: 18px; color: white; margin-top: 2px; }
@@ -55,6 +60,17 @@
 </head>
 <body>
 
+    <div class="hero">
+        <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom: 10px; filter: drop-shadow(0 0 8px rgba(56, 189, 248, 0.5));">
+            <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/>
+            <path d="M12 18c3.314 0 6-2.686 6-6s-2.686-6-6-6-6 2.686-6 6 2.686 6 6 6z"/>
+            <path d="M12 14c1.105 0 2-0.895 2-2s-0.895-2-2-2-2 0.895-2 2 0.895 2 2 2z"/>
+            <path d="M12 2v4M12 18v4M2 12h4M18 12h4"/>
+        </svg>
+        <h1>KIMIA TRACK</h1>
+        <p>Intelligence Géospatiale & Protection Civile</p>
+    </div>
+
     <div class="header-app">
         <div>
             <span class="session-info" id="session-id">KT-SECURE-SYNC</span>
@@ -88,9 +104,9 @@
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
-        // ATTENTION : Remplace bien cette clé par ta clé complète trouvée dans Supabase Settings !
+        // Remplacement de la clé par la clé active Supabase fonctionnelle
         const SUPABASE_URL = "https://ufwirghypzowlmeqqgco.supabase.co";
-        const SUPABASE_KEY = "sb_publishable_ZMjol0IAFBrmaULUzR7IA_Gk31Msqq"; 
+        const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVmd2lyZ2h5cHpvd2xtZXFxZ2NvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg5MjE5OTksImV4cCI6MjA5NDQ5Nzk5OX0.4VuibIs4KtccJ3IR8p8BRsaCeKmfLCcb0FpTrxP18JU"; 
         
         let clientSupabase;
         const userTel = localStorage.getItem('kt_user_tel');
@@ -116,17 +132,15 @@
 
         async function synchroniserProfilEtEspace() {
             try {
-                // Requête explicite
                 const { data: profil, error } = await clientSupabase
                     .from('profils')
                     .select('nom, statut_compte, solde_fc')
                     .eq('whatsapp_num', userTel)
-                    .maybeSingle(); // Évite le crash si aucun profil n'est trouvé
+                    .maybeSingle();
 
                 if (error) throw error;
 
                 if (!profil) {
-                    // Si aucun compte n'est trouvé dans Supabase avec ce numéro
                     document.getElementById('user-name').innerText = "Profil non trouvé";
                     document.getElementById('account-status').innerText = "MODE DÉMO";
                     document.getElementById('account-status').className = "badge-status demo";
@@ -134,11 +148,9 @@
                     return;
                 }
 
-                // Affichage du vrai Nom complet de la table
                 document.getElementById('user-name').innerText = profil.nom || "Utilisateur Kimia";
 
-                // Validation stricte du Forfait
-                const calculGold = (profil.statut_compte === "ACTIF" || parseInt(profil.solde_fc) >= 5500);
+                const calculGold = (profil.statut_compte === "ACTIF" || profil.statut_compte === "GOLD" || parseInt(profil.solde_fc) >= 5500);
                 const mode = calculGold ? "GOLD" : "DEMO";
                 const solde = profil.solde_fc || 0;
 
@@ -153,7 +165,6 @@
 
             } catch (err) {
                 alert("Erreur de synchronisation serveur : " + err.message);
-                // Mode dégradé sécurisé
                 document.getElementById('user-name').innerText = "Mode Hors-Ligne";
                 await genererEspaceCibles("DEMO", 0);
             }
