@@ -8,7 +8,10 @@
         :root { --primary: #38bdf8; --bg: #0f172a; --card: #1e293b; --text: #f1f5f9; --accent: #eab308; --success: #22c55e; }
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 15px; }
         
-        .header { text-align: center; margin-bottom: 20px; }
+        .hero { text-align: center; margin-bottom: 20px; }
+        .hero h1 { color: var(--primary); margin: 0; font-size: 24px; }
+        .hero p { font-size: 13px; opacity: 0.7; margin-top: 5px; }
+
         .card { background: var(--card); padding: 20px; border-radius: 15px; border: 1px solid #334155; position: relative; margin-bottom: 20px; }
         
         input, select { 
@@ -45,9 +48,15 @@
 </head>
 <body>
 
-    <div class="header">
-        <h2 id="page-title" style="color: var(--primary); margin: 0;">Recharge Portefeuille</h2>
-        <p id="page-subtitle" style="font-size: 13px; opacity: 0.7; margin-top: 5px;">Créditez votre compte pour activer vos requêtes</p>
+    <div class="hero">
+        <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom: 10px; filter: drop-shadow(0 0 8px rgba(56, 189, 248, 0.5));">
+            <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/>
+            <path d="M12 18c3.314 0 6-2.686 6-6s-2.686-6-6-6-6 2.686-6 6 2.686 6 6 6z"/>
+            <path d="M12 14c1.105 0 2-0.895 2-2s-0.895-2-2-2-2 0.895-2 2 0.895 2 2 2z"/>
+            <path d="M12 2v4M12 18v4M2 12h4M18 12h4"/>
+        </svg>
+        <h1 id="page-title">KIMIA TRACK</h1>
+        <p id="page-subtitle">Intelligence Géospatiale & Protection Civile</p>
     </div>
 
     <div id="section-demo" style="display: none;">
@@ -113,7 +122,7 @@
 
         function initialiserClient() {
             const SUPABASE_URL = "https://ufwirghypzowlmeqqgco.supabase.co";
-            const SUPABASE_KEY = "sb_publishable_ZMjol0IAFBrmaZULUzR7IA_Gk31Msqq";
+            const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVmd2lyZ2h5cHpvd2xtZXFxZ2NvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg5MjE5OTksImV4cCI6MjA5NDQ5Nzk5OX0.4VuibIs4KtccJ3IR8p8BRsaCeKmfLCcb0FpTrxP18JU";
             const btn = document.getElementById('btn-submit-pay');
 
             try {
@@ -181,7 +190,7 @@
         }
 
         function configurerModeDemo() {
-            document.getElementById('page-title').innerText = "Activation Compte Démo";
+            document.getElementById('page-title').innerText = "KIMIA TRACK";
             document.getElementById('page-subtitle').innerText = "Initialisation de vos accès gratuits";
             document.getElementById('section-demo').style.display = "block";
             document.getElementById('section-gold-inputs').style.display = "none";
@@ -254,7 +263,6 @@
                 localStorage.setItem('kt_sms_demo', smsCadeau);
                 localStorage.setItem('kt_auth_status', 'registered');
 
-                // CORRECTION SÉCURITÉ MOBILE : Utilisation d'un court délai après l'alert pour forcer la redirection
                 if (modeAcces === "GOLD") {
                     alert(`✅ Inscription validée !\nCode soumis : ${codeTxn}.\nAccès actif après vérification.`);
                 } else {
