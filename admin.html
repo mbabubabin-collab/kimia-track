@@ -31,12 +31,27 @@
         .net-gain { background: #1e293b; padding: 15px; border-radius: 8px; border: 1px solid var(--success); margin-top: 10px; text-align: center; }
         .config-group { margin-bottom: 12px; background: #0f172a; padding: 10px; border-radius: 8px; border: 1px solid #334155; }
         .config-group label { font-size: 0.8rem; font-weight: bold; display: block; margin-bottom: 3px; }
+        
+        /* Harmonisation de la classe hero pour l'admin */
+        .hero { text-align: center; margin-bottom: 15px; }
+        .hero h1 { color: var(--primary); margin: 0; font-size: 22px; letter-spacing: 1px; }
+        .hero p { font-size: 12px; opacity: 0.7; margin-top: 5px; }
     </style>
 </head>
 <body>
 
     <div id="login-screen" class="login-overlay">
-        <h2 style="color: var(--primary); letter-spacing: 1px;">KIMIA TRACK ADMIN</h2>
+        <div class="hero">
+            <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom: 10px; filter: drop-shadow(0 0 8px rgba(56, 189, 248, 0.5));">
+                <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/>
+                <path d="M12 18c3.314 0 6-2.686 6-6s-2.686-6-6-6-6 2.686-6 6 2.686 6 6 6z"/>
+                <path d="M12 14c1.105 0 2-0.895 2-2s-0.895-2-2-2-2 0.895-2 2 0.895 2 2 2z"/>
+                <path d="M12 2v4M12 18v4M2 12h4M18 12h4"/>
+            </svg>
+            <h1>KIMIA TRACK</h1>
+            <p>Intelligence Géospatiale & Protection Civile</p>
+        </div>
+        
         <div class="card">
             <input type="password" id="admin-pass" placeholder="Code d'accès secret...">
             <button class="btn" style="background: var(--primary); color: var(--bg);" onclick="verifierAcces()">CONNEXION SYSTÈME</button>
@@ -165,11 +180,11 @@
         let listeProfilsGlobaux = [];
         const COUT_SMS_FIXE = 1500; 
 
-        // Initialisation asynchrone sécurisée par DOMContentLoaded
+        // Initialisation asynchrone sécurisée par DOMContentLoaded avec clé mise à jour
         window.addEventListener('DOMContentLoaded', () => {
             try {
                 const SUPABASE_URL = "https://ufwirghypzowlmeqqgco.supabase.co";
-                const SUPABASE_KEY = "sb_publishable_ZMjol0IAFBrmaZULUzR7IA_Gk31Msqq";
+                const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVmd2lyZ2h5cHpvd2xtZXFxZ2NvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg5MjE5OTksImV4cCI6MjA5NDQ5Nzk5OX0.4VuibIs4KtccJ3IR8p8BRsaCeKmfLCcb0FpTrxP18JU";
                 
                 if (window.supabase) {
                     clientSupabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -293,7 +308,6 @@
         }
 
         function calcularFinances(caTotal) {
-            // Maintenu uniquement pour compatibilité de signature interne (sans récursion infinie)
             return;
         }
 
@@ -361,7 +375,6 @@
                     { cle: 'admin_africell', valeur: document.getElementById('cfg-africell').value.trim() }
                 ];
 
-                // Exécution des requêtes d'insertion/mise à jour sécurisées
                 for (const item of configs) {
                     const { error } = await clientSupabase
                         .from('configuration')
