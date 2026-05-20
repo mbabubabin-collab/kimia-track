@@ -19,8 +19,7 @@
         .session-info { font-size: 11px; color: var(--primary); letter-spacing: 1px; font-family: monospace; }
         .user-name { font-weight: bold; font-size: 18px; color: white; margin-top: 2px; }
 
-        .badge-container { text-align: right; }
-        .badge-status { font-size: 14px; font-weight: bold; padding: 4px 10px; border-radius: 6px; margin-top: 3px; display: inline-block; }
+        .badge-status { font-size: 14px; font-weight: bold; padding: 4px 10px; border-radius: 6px; }
         .badge-status.demo { background: rgba(234, 179, 8, 0.15); color: var(--accent); border: 1px solid var(--accent); }
         .badge-status.gold { background: rgba(34, 197, 94, 0.15); color: var(--success); border: 1px solid var(--success); }
 
@@ -46,11 +45,7 @@
 <body>
 
     <div class="hero">
-        <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="filter: drop-shadow(0 0 8px rgba(56, 189, 248, 0.5));">
-            <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/><path d="M12 18c3.314 0 6-2.686 6-6s-2.686-6-6-6-6 2.686-6 6 2.686 6 6 6z"/><path d="M12 14c1.105 0 2-0.895 2-2s-0.895-2-2-2-2 0.895-2 2 0.895 2 2 2z"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/>
-        </svg>
         <h1>KIMIA TRACK</h1>
-        <p>Intelligence Géospatiale & Protection Civile</p>
     </div>
 
     <div class="header-app">
@@ -102,11 +97,13 @@
             
             document.getElementById('form-title').innerText = (mode === "GOLD") ? `📡 Ajouter terminal (${(cibles?.length || 0)}/8)` : "📡 Enregistrer cible (Forfait Démo)";
 
-            container.innerHTML = (mode === "DEMO") ? `
-                <div style="background:rgba(234, 179, 8, 0.1); border:1px solid var(--accent); padding:15px; border-radius:12px; text-align:center; margin-bottom:20px;">
-                    <p style="color:var(--accent); font-weight:bold;">🚀 MODE DÉMO</p>
-                    <a href="approvisionnement.html" style="color:white; text-decoration:underline;">Passer en GOLD pour 8 cibles illimitées</a>
-                </div>` : "";
+            if (mode === "DEMO") {
+                container.innerHTML = `
+                    <div style="background:rgba(234, 179, 8, 0.1); border:1px solid var(--accent); padding:15px; border-radius:12px; text-align:center; margin-bottom:20px;">
+                        <p style="color:var(--accent); font-weight:bold;">🚀 MODE DÉMO</p>
+                        <a href="approvisionnement.html" style="color:white; text-decoration:underline;">Passer en GOLD pour 8 cibles</a>
+                    </div>`;
+            }
 
             if (cibles && cibles.length > 0) {
                 cibles.forEach((c, i) => {
@@ -130,28 +127,39 @@
         }
 
         async function ajouterCible() {
-            const nom = document.getElementById('nom_cible').value;
-            const tel = document.getElementById('telephone_cible').value;
+            const nom = document.getElementById('nom_cible').value.trim();
+            const tel = document.getElementById('telephone_cible').value.trim();
+            
+            if (!nom || !tel) return alert("Veuillez remplir les deux champs.");
+
             const { count } = await clientSupabase.from('cibles').select('*', {count: 'exact', head: true}).eq('user_id_proprietaire', userTel);
             const estGold = document.getElementById('account-status').innerText.includes("GOLD");
             
-            if (!estGold && count >= 1) return alert("⚠️ Limite DÉMO atteinte.");
+            if (!estGold && count >= 1) return alert("⚠️ Limite DÉMO atteinte (1 cible max).");
             
-            await clientSupabase.from('cibles').insert([{ nom_cible: nom, numero_cible: tel, user_id_proprietaire: userTel }]);
+            const { error } = await clientSupabase.from('cibles').insert([{ nom_cible: nom, numero_cible: tel, user_id_proprietaire: userTel }]);
+            if (error) return alert("Erreur : " + error.message);
+            
             location.reload();
         }
 
         window.verifierAcces = (page, mode) => {
             const sms = parseInt(localStorage.getItem('kt_sms_demo') || 3);
             if (mode !== 'GOLD' && sms <= 0) {
-                alert("⚠️ Solde épuisé.");
+                alert("⚠️ Solde épuisé. Passez au GOLD.");
                 window.location.href = "approvisionnement.html";
             } else {
                 window.location.href = page;
             }
         };
 
-        window.toggleAccordion = (id) => { const el = document.getElementById(id); el.style.display = (el.style.display === "block") ? "none" : "block"; };
+        window.toggleAccordion = (id) => { 
+            const el = document.getElementById(id); 
+            // Ferme les autres avant d'ouvrir
+            document.querySelectorAll('.accordion-content').forEach(c => { if(c.id !== id) c.style.display = 'none'; });
+            el.style.display = (el.style.display === "block") ? "none" : "block"; 
+        };
+
         window.deconnexion = () => { localStorage.removeItem('kt_user_tel'); window.location.href = 'identification.html'; };
     </script>
 </body>
